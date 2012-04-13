@@ -200,7 +200,6 @@ function makeFolderStructurePage(args) {
 			dir = escape(data.dirs[i].dir);
 			par = data.dirs[i].par;
 			chk = data.drives.toString().indexOf(par);
-			//What if the parent directory is a HDD? Make it the content block
 			if ($('div#'+dir+'-dir').length==0) {
 				//Create a new page
 				HTML='<div id="'+dir+'-dir" class="page"><div class="spacer"></div><div class="spacer"></div><span class="page-title">'+unescape(dir)+'</span><br/><br/></div>';
@@ -253,8 +252,56 @@ function makeFolderStructurePage(args) {
 	}
 }
 
-function makeFavoritesPage() {
-	return false;
+function makeFavoritesPage(args) {
+	if (args) {
+		showPage(args[1]);
+		return;
+	}
+	var id, name, cover, activeClass, HTML, tileHTML, listName, gameList;
+	var active=data.active;
+	var favLists = Fav.lists();
+	tileHTML='';
+	if ($.isEmptyObject(favLists)) {
+		tileHTML+='<a href="javascript:history.back()">';
+		tileHTML+='<div class="tile accent favlist">';
+		tileHTML+='<span class="tile-title">No lists</span>';
+		tileHTML+='</div></a>';
+		document.getElementById('favoritescontainer').innerHTML=tileHTML;
+	}
+	else {
+		var lists = [];
+		for (var i in favLists) {
+			lists.push(i);
+		}
+		var l = lists.length;
+		tileHTML='';
+		for (var i=0; i<l; i++) {
+			listName=lists[i];
+			//Create a new page
+			if ($('div#'+escape(listName)+'-list').length==0) {
+				HTML='<div id="'+escape(listName)+'-list" class="page"><div class="spacer"></div><div class="spacer"></div><span class="page-title">'+listName+'</span><br/><br/></div>';
+				document.getElementById('main').innerHTML+=HTML;
+				gameList = favLists[listName];
+				var k = gameList.length;
+				HTML='';
+				for (var j=0; j<k; j++) {
+					id = gameList[i].id;
+					name = gameList[i].name;
+					cover = 'covers/'+id+'.jpg';
+					HTML+='<a href="#details-page?'+id+'&'+escape(name)+'"><div class="tile accent animate" style="background-image:url(\''+cover+'\'); background-size: 173px;"><span class="tile-title">'+name+'</span></div></a>';
+				}
+				document.getElementById(escape(listName)+'-list').innerHTML+=HTML;
+				//Register new page with empty function
+				pages[escape(listName)+'-list']=function(){};
+			}
+			//Tile HTML
+			tileHTML+='<a href="#favorites-page?'+escape(listName)+'-list">';
+			tileHTML+='<div class="tile accent favlist">';
+			tileHTML+='<span class="tile-title">'+listName+'</span>';
+			tileHTML+='</div></a>';
+		}
+		document.getElementById('favoritescontainer').innerHTML=tileHTML;
+	}
 }
 
 function makeSearchPage() {
@@ -319,7 +366,7 @@ function prepDetails(id, name) {
 			HTML+='<img class="details-cover" src="img/test.jpg"/>'+summary+'<div class="details-button-pane">';
 			HTML+='<a class="button" href="javascript:launchGame(\''+id+'\');">Play</a>';
 			HTML+='<a class="button" href="javascript:history.back();">Close</a>';
-			HTML+='<a class="button" href="javascript:pinToMain(\''+id+'\', \''+name+'\');">Pin to start</a>';
+			HTML+='<a class="button" href="javascript:Pin.add(\''+id+'\', \''+name+'\');">Pin to start</a>';
 			HTML+='<a class="button" href="javascript:history.back();">Add to favorites</a>';
 			HTML+='</div></div>';
 			document.getElementById('details-page').innerHTML=HTML;
