@@ -11,7 +11,7 @@ var pages = {
 	'coverwall-page' 		: function(){makeCoverWallPage()},
 	'list-page' 			: function(args){makeListPage(args)},
 	'folderstructure-page'	: function(args){makeFolderStructurePage(args)},
-	'favorites-page' 		: function(){makeFavoritesPage()},
+	'favorites-page' 		: function(args){makeFavoritesPage(args)},
 	'search-page' 			: function(){makeSearchPage()},
 	'about-page' 			: function(){makeAboutPage()},
 	'overlay' 				: function(args){makeOverlay(args)},
@@ -48,6 +48,7 @@ function getCurrentPage() {
 }
 
 function showPage(page) {
+	console.log(page);
 	//Always stop tile animation on page change
 	Tile.stop();
 	var allPages=[];
@@ -93,6 +94,36 @@ function showPage(page) {
 	//Trigger tile animation for the page, function determines if there will be animation
 	Tile.init(page);
 	return;
+}
+
+function search(input) {
+	if (input.length==0) {
+		document.getElementById('searchResults').innerHTML="";
+		return;
+	}
+	else {
+		var l = data.ISOlist.length;
+		var allGames = data.ISOlist;
+		var pattern=new RegExp(input,"i");
+		var results=[];
+		for (var i=0; i<l; i++) {
+			//RegExp the input and push results to array
+			if (pattern.test(allGames[i].name)) {
+				results.push(allGames[i]);
+			}
+		}
+		var l = results.length;
+		var HTML='';
+		var name, id, cover;
+		//Loop through the results and make the HTML
+		for (var i=0; i<l; i++) {
+			name=results[i].name;
+			id=results[i].id;
+			cover='covers/'+id+'.jpg';
+			HTML+='<a href="#details-page?'+id+'&'+escape(name)+'"><div class="list-item" id="'+id+'"><div class="list-item-icon accent" style="background-image:url(\''+cover+'\'); background-size: 72px;"></div><span class="list-item-text">'+name+'</span></div></a>';
+		}
+		document.getElementById('searchResults').innerHTML=HTML;
+	}
 }
 
 function openLetterOverlay() {
@@ -218,6 +249,7 @@ var Settings = {
 		}
 		//All required functions called with settings
 		accentChange(accent);
+		Pin.load();
 	},
 	
 	'save': function () {
@@ -239,45 +271,53 @@ var Settings = {
 	}
 }
 
-function search(input) {
-	if (input.length==0) {
-		document.getElementById('searchResults').innerHTML="";
-		return;
-	}
-	else {
-		var l = data.ISOlist.length;
-		var allGames = data.ISOlist;
-		var pattern=new RegExp(input,"i");
-		var results=[];
-		for (var i=0; i<l; i++) {
-			//RegExp the input and push results to array
-			if (pattern.test(allGames[i].name)) {
-				results.push(allGames[i]);
-			}
-		}
-		var l = results.length;
+var Pin = {
+	'toMain': function (id, name) {
 		var HTML='';
-		var name, id, cover;
-		//Loop through the results and make the HTML
-		for (var i=0; i<l; i++) {
-			name=results[i].name;
-			id=results[i].id;
-			cover='covers/'+id+'.jpg';
-			HTML+='<a href="#details-page?'+id+'&'+escape(name)+'"><div class="list-item" id="'+id+'"><div class="list-item-icon accent" style="background-image:url(\''+cover+'\'); background-size: 72px;"></div><span class="list-item-text">'+name+'</span></div></a>';
+		//Build the tile
+		HTML+='<a href="#details-page?'+id+'&'+escape(name)+'">';
+		HTML+='<div class="tile accent animate" style="background-image:url(\'covers/'+id+'.jpg\'); background-size: 173px;">';
+		HTML+='<span class="tile-title">'+name+'</span>';
+		HTML+='</div></a>';
+		//Append to main menu
+		document.getElementById('main-screen').innerHTML+=HTML;
+	},
+	'load': function () {
+		var favLists = Fav.lists();
+		if ($.isEmptyObject(favLists)) {
+			return;
 		}
-		document.getElementById('searchResults').innerHTML=HTML;
+		var pinList = favLists.Pinned;
+		if ($.isEmptyObject(pinList)) {
+			return;
+		}
+		var l = pinList.length;
+		var id, name;
+		for (var i=0; i<l; i++) {
+			id = pinList[i].id;
+			name = pinList[i].name;
+			Pin.toMain(id, name);
+		}
+	},
+	'add': function (id, name) {
+		var listName = 'Pinned';
+		var favLists = Fav.lists();
+		var result;
+		if ($.isEmptyObject(favLists)) {
+			favLists={};
+		}
+		if (!(listName in favLists)) {
+			Fav.createList('Pinned', id, name);
+			result = true;
+		}
+		else {
+			result = Fav.addToList('Pinned', id, name);
+		}
+		console.log(result);
+		if (result) {
+			Pin.toMain(id, name);
+		}
 	}
-}
-
-function pinToMain(id, name) {
-	var HTML='';
-	//Build the tile
-	HTML+='<a href="#details-page?'+id+'&'+escape(name)+'">';
-	HTML+='<div class="tile accent animate" style="background-image:url(\'covers/'+id+'.jpg\'); background-size: 173px;">';
-	HTML+='<span class="tile-title">'+name+'</span>';
-	HTML+='</div></a>';
-	//Append to main menu
-	document.getElementById('main-screen').innerHTML+=HTML;
 }
 
 var Fav = {
@@ -287,8 +327,8 @@ var Fav = {
 			favLists={};
 		}
 		else if (listName in favLists) {
-				MessageBox.Show('List "'+unescape(listName)+'" already exists!');
-				return;
+			MessageBox.Show('List "'+unescape(listName)+'" already exists!');
+			return;
 		}
 		favLists[listName]=[];
 		Fav.save(favLists, false);
@@ -302,10 +342,18 @@ var Fav = {
 	'addToList': function (listName, id, name) {
 		var favLists = Fav.lists();
 		var gameList = favLists[listName];
-		gameList.push({
-			"id" : id,
-			"name" : name });
+		var inList = Fav.findList(id);
+		var index = Fav.findIndex(inList, listName);
+		if (index == -1) {
+			gameList.push({
+				"id" : id,
+				"name" : name });
+		}
+		else {
+			return false;
+		}
 		Fav.save(favLists, true);
+		return true;
 	},
 	'removeFromList': function (listName, id) {
 		var favLists = Fav.lists();
@@ -332,13 +380,16 @@ var Fav = {
 		return -1;
 	},
 	'lists': function () {
-		return saveData['FavLists'];
+		return saveData.FavLists;
 	},
 	'save': function (favLists, toServer) {
-		saveData['FavLists'] = favLists;
+		saveData.FavLists = favLists;
 		if (toServer) {
 			Settings.save();
 		}
+	},
+	'makePage': function (listName) {
+		console.log(listName);
 	}
 }
 
