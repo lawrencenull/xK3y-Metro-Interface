@@ -157,6 +157,9 @@ function makeListPage(args) {
 			id = ISOlist[i].id;
 			cover = ISOlist[i].image;
 			letter = iso.charAt(0).toLowerCase();
+			if(isNumber(letter)) {
+				letter='#';
+			}
 			if (HTML.indexOf('list-divider-'+letter)==-1) {
 				if (lastLetter!='' && lastLetter != letter) {
 					HTML+='</div>';

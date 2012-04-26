@@ -127,7 +127,7 @@ function search(input) {
 }
 
 function openLetterOverlay() {
-	var letters = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
+	var letters = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","#"];
 	var avail = [];
 	$('div[id^="list-divider-"]').each(function() {
 		avail.push(this.id.slice(13,14));
@@ -525,7 +525,7 @@ function updateActive(id) {
 }
 
 function scrollToLetter(letter) {
-	window.scroll(0,$('#list-divider-'+letter).offset().top);
+	window.scroll(0,$(document.getElementById('list-divider-'+letter)).offset().top);
 }
 
 function scrollUp() {
@@ -537,3 +537,7 @@ function toArray(strg){
     var res = strg.match(/(-?[0-9\.]+)(px|\%|em|pt)\s(-?[0-9\.]+)(px|\%|em|pt)/);
     return [parseFloat(res[1],10),res[2],parseFloat(res[3],10),res[4]];
 }
+
+function isNumber (o) { 
+  return ! isNaN (o-0); 
+} 
