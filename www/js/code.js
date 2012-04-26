@@ -259,11 +259,12 @@ function makeFavoritesPage(args) {
 	}
 	var id, name, cover, activeClass, HTML, tileHTML, listName, gameList;
 	var active=data.active;
+	var color=saveData.Settings.accent;
 	var favLists = Fav.lists();
 	tileHTML='';
 	if ($.isEmptyObject(favLists)) {
 		tileHTML+='<a href="javascript:history.back()">';
-		tileHTML+='<div class="tile accent favlist">';
+		tileHTML+='<div class="tile accent favlist '+color+'">';
 		tileHTML+='<span class="tile-title">No lists</span>';
 		tileHTML+='</div></a>';
 		document.getElementById('favoritescontainer').innerHTML=tileHTML;
@@ -288,7 +289,7 @@ function makeFavoritesPage(args) {
 					id = gameList[i].id;
 					name = gameList[i].name;
 					cover = 'covers/'+id+'.jpg';
-					HTML+='<a href="#details-page?'+id+'&'+escape(name)+'"><div class="tile accent animate" style="background-image:url(\''+cover+'\'); background-size: 173px;"><span class="tile-title">'+name+'</span></div></a>';
+					HTML+='<a href="#details-page?'+id+'&'+escape(name)+'"><div class="tile accent animate '+color+'" style="background-image:url(\''+cover+'\'); background-size: 173px;"><span class="tile-title">'+name+'</span></div></a>';
 				}
 				document.getElementById(escape(listName)+'-list').innerHTML+=HTML;
 				//Register new page with empty function
@@ -296,7 +297,7 @@ function makeFavoritesPage(args) {
 			}
 			//Tile HTML
 			tileHTML+='<a href="#favorites-page?'+escape(listName)+'-list">';
-			tileHTML+='<div class="tile accent favlist">';
+			tileHTML+='<div class="tile accent favlist '+color+'">';
 			tileHTML+='<span class="tile-title">'+listName+'</span>';
 			tileHTML+='</div></a>';
 		}

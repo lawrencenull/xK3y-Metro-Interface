@@ -208,10 +208,6 @@ var Dropdown = {
 	}
 }
 
-function setBackground(color) {
-	
-}
-
 var MessageBox = {
 	'Show': function (title, text, buttonHTML) {
 		//WP7 already has the smexy alert box, use native
@@ -280,9 +276,10 @@ var Settings = {
 var Pin = {
 	'toMain': function (id, name) {
 		var HTML='';
+		var color=saveData.Settings.accent;
 		//Build the tile
 		HTML+='<a href="#details-page?'+id+'&'+escape(name)+'">';
-		HTML+='<div class="tile accent animate" style="background-image:url(\'covers/'+id+'.jpg\'); background-size: 173px;">';
+		HTML+='<div class="tile accent animate '+color+'" style="background-image:url(\'covers/'+id+'.jpg\'); background-size: 173px;">';
 		HTML+='<span class="tile-title">'+name+'</span>';
 		HTML+='</div></a>';
 		//Append to main menu
