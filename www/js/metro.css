@@ -14,6 +14,22 @@
 	border:none;
 }
 
+.homeButton {
+	position:absolute;
+	right:12px;
+	top:30px;
+	vertical-align:middle;
+	z-index:99999
+}
+
+.homeButton img {
+	width:48px;
+	display:inline;
+	border:none;
+	position:relative;
+	top:18px;
+}
+
 .tile {
 	width:173px;
 	height:173px;
@@ -62,6 +78,10 @@
 
 #coverwallcontainer, #folderstructurecontainer, #listcontainer, #favoritescontainer {
 	margin-left:-6px
+}
+
+#favoritemanagementcontainer {
+	position:inherit;
 }
 
 .messagebox-title {
@@ -228,20 +248,26 @@ a.button {
 	width:186px;
 }
 
+a.widebutton {
+	width:auto;
+	right:6px;
+	left:0px;
+	position:absolute;
+}
+
 .searchinput {
-	padding:12px;
+	padding:6px;
 	font-size:15pt;
 }
 
 .dropdown {
 	margin-left:0px;
-	margin-right:12px;
-	right:18px;
-	left:6px;
+	margin-right:24px;
+	left:0px;
 	background-color:#BEBEBE;
 	padding:6px;
 	display:block;
-	position:absolute;
+	position:relative;
 }
 
 .dropdown:active {

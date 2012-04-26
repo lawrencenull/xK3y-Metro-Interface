@@ -1,23 +1,24 @@
 //Global variables needed
 var firstLoad=true;
 var colors = ['blue','red','green','mango','pink','brown','lime','teal','purple','magenta'];
-var dropDownFlag, animCounter, data, saveData;
+var dropDownFlag, animCounter, data, saveData, xK3yIP;
 var listsMade=false;
 var wallMade=false;
 var foldersMade=false;
 var t=true;
 //All the pages with linked functions
 var pages = {
-	'coverwall-page' 		: function(){makeCoverWallPage()},
-	'list-page' 			: function(args){makeListPage(args)},
-	'folderstructure-page'	: function(args){makeFolderStructurePage(args)},
-	'favorites-page' 		: function(args){makeFavoritesPage(args)},
-	'search-page' 			: function(){makeSearchPage()},
-	'about-page' 			: function(){makeAboutPage()},
-	'overlay' 				: function(args){makeOverlay(args)},
-	'details-page' 			: function(args){prepDetails(args)},
-	'main-screen'			: function(){},
-	'config-page'			: function(){}
+	'coverwall-page' 			: function(){makeCoverWallPage()},
+	'list-page' 				: function(args){makeListPage(args)},
+	'folderstructure-page'		: function(args){makeFolderStructurePage(args)},
+	'favorites-page' 			: function(args){makeFavoritesPage(args)},
+	'favoritesmanagement-page'	: function(args){makeFavManagementPage(args)},
+	'search-page' 				: function(){makeSearchPage()},
+	'about-page' 				: function(){makeAboutPage()},
+	'overlay' 					: function(args){makeOverlay(args)},
+	'details-page' 				: function(args){prepDetails(args)},
+	'main-screen'				: function(){},
+	'config-page'				: function(){}
 };
 //Default settings
 var defaultSettings = {
@@ -48,7 +49,6 @@ function getCurrentPage() {
 }
 
 function showPage(page) {
-	console.log(page);
 	//Always stop tile animation on page change
 	Tile.stop();
 	var allPages=[];
@@ -183,27 +183,33 @@ function accentChange(color) {
 	Settings.save();
 }
 
-function backgroundDropdown() {
-	if (!dropDownFlag) {
-		var dropDown = $('#backgroundSelect');
-		var current = dropDown.children('.dropdown-active');
-		current.children('span').attr('onclick', 'setBackground(this.innerHTML)');
-		current.removeClass('dropdown-active');
-		dropDown.children('.dropdown-item').slideDown();
-		dropDown.attr('onclick','');
-		dropDownFlag=true;
+var Dropdown = {
+	'open': function (element) {
+		if (!dropDownFlag) {
+			var dropDown = $(element);
+			var current = dropDown.children('.dropdown-active');
+			dropDown.find('span').attr('onclick', 'Dropdown.select(this.parentNode.parentNode, this.parentNode)');
+			dropDown.attr('onclick','');
+			current.removeClass('dropdown-active');
+			dropDown.children('.dropdown-item').slideDown();
+			dropDownFlag=true;
+		}
+	},
+	'select': function (element, item) {
+		if (dropDownFlag) {
+			var item = $(item);
+			var dropDown = $(element);
+			item.addClass('dropdown-active').attr('onclick','');
+			dropDown.children('.dropdown-item:not(".dropdown-active")').slideUp();
+			dropDown.attr('onclick','Dropdown.open(this)');
+			//FF bug, delay being able to open the dropdown by 1 millisecond
+			setTimeout('dropDownFlag=false',1);
+		}
 	}
 }
 
 function setBackground(color) {
-	if (dropDownFlag) {
-		var dropDown = $('#backgroundSelect');
-		$('#'+color).addClass('dropdown-active').attr('onclick','');
-		dropDown.children('.dropdown-item:not(.dropdown-active)').slideUp();
-		dropDown.attr('onclick','backgroundDropdown()');
-		//FF bug, delay being able to open the dropdown by 1 millisecond
-		setTimeout('dropDownFlag=false',1);
-	}
+	
 }
 
 var MessageBox = {
@@ -307,39 +313,54 @@ var Pin = {
 			favLists={};
 		}
 		if (!(listName in favLists)) {
-			Fav.createList('Pinned', id, name);
+			Fav.createList(id, name, listName);
 			result = true;
 		}
 		else {
-			result = Fav.addToList('Pinned', id, name);
+			result = Fav.addToList(id, name, listName);
 		}
-		console.log(result);
 		if (result) {
 			Pin.toMain(id, name);
 		}
+		prepDetails(id, name);
+	},
+	'remove': function (id, name) {
+		var listName = 'Pinned';
+		Fav.removeFromList(id, false, listName);
+		$('a[href^="#details-page?'+id+'"]').remove();
+		prepDetails(id, name);
 	}
 }
 
 var Fav = {
-	'createList': function (listName, id, name) {
+	'createList': function (id, name, listName) {
+		if (!listName) {
+			listName = document.getElementById('favCreateInput').value;
+		}
 		var favLists = Fav.lists();
 		if ($.isEmptyObject(favLists)) {
 			favLists={};
 		}
 		else if (listName in favLists) {
-			MessageBox.Show('List "'+unescape(listName)+'" already exists!');
+			MessageBox.Show('Error', 'List "'+unescape(listName)+'" already exists!');
 			return;
 		}
 		favLists[listName]=[];
 		Fav.save(favLists, false);
-		Fav.addToList(listName, id, name);
+		Fav.addToList(id, name, listName);
+		makeFavManagementPage(['page', id+'&'+name]);
 	},
 	'removeList': function (listName) {
 		var favLists = Fav.lists();
 		delete favLists[listName];
 		Fav.save(favLists, true);
 	},
-	'addToList': function (listName, id, name) {
+	'addToList': function (id, name, listName) {
+		var flag=false;
+		if (!listName) {
+			listName = unescape($('#favAddDropdown').children('.dropdown-active').attr('id'));
+			flag=true;
+		}
 		var favLists = Fav.lists();
 		var gameList = favLists[listName];
 		var inList = Fav.findList(id);
@@ -353,17 +374,29 @@ var Fav = {
 			return false;
 		}
 		Fav.save(favLists, true);
+		if (flag) {
+			makeFavManagementPage(['page', id+'&'+name]);
+			return;
+		}
 		return true;
 	},
-	'removeFromList': function (listName, id) {
+	'removeFromList': function (id, name, listName) {
+		var flag=false;
+		if (!listName) {
+			listName = unescape($('#favRemoveDropdown').children('.dropdown-active').attr('id'));
+			flag=true;
+		}
 		var favLists = Fav.lists();
 		var gameList = favLists[listName];
 		var index = Fav.findIndex(gameList, id);
 		gameList.splice(index,1);
 		if (gameList.length==0) {
-			removeList(listName);
+			Fav.removeList(listName);
 		}
 		Fav.save(favLists, true);
+		if (flag) {
+			makeFavManagementPage(['page', id+'&'+name]);
+		}
 	},
 	'findList': function (id) {
 		var savedFavLists = Fav.lists();
@@ -373,7 +406,13 @@ var Fav = {
 		}
 		return foundLists;
 	},
-	'findIndex': function (array, id) {
+	'findIndex': function (array, id, game) {
+		if (game) {
+			for (var i=0; i<array.length; i++) {
+				if (array[i].id==id) return i;
+			}
+			return -1;
+		}
 		for (var i=0; i<array.length; i++) {
 			if (array[i]==id) return i;
 		}
@@ -387,9 +426,6 @@ var Fav = {
 		if (toServer) {
 			Settings.save();
 		}
-	},
-	'makePage': function (listName) {
-		console.log(listName);
 	}
 }
 

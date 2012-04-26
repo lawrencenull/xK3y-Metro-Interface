@@ -304,9 +304,72 @@ function makeFavoritesPage(args) {
 	}
 }
 
+function makeFavManagementPage(args) {
+	document.getElementById('favManagementExtra').innerHTML='';
+	var tmp=args[1].split('&',2);
+	var id = tmp[0];
+	var name = tmp[1];
+	var favLists = Fav.lists();
+	if (!$.isEmptyObject(favLists)) {
+		var HTML='';
+		var favListNames = [];
+		for (var i in favLists) {
+			favListNames.push(i);
+		}
+		for (var i=0;i<favListNames.length;i++) {
+			var flag=false;
+			var extraclass=' invis';
+			var exists = Fav.findList(id);
+			for (var j=0;j<exists.length;j++) {
+				if (favListNames[i]==exists[j]) {
+					flag=true;
+				}
+			}
+			if (flag) {
+				continue;
+			}
+			if(i==0) {
+				extraclass=' dropdown-active'
+			}
+			HTML+='<div id="'+escape(favListNames[i])+'" class="dropdown-item'+extraclass+'">';
+			HTML+='<span class="dropdownText">'+favListNames[i]+'</span>';
+			HTML+='</div>';
+		}
+		if (HTML.length!=0) {
+			var preHTML='Select a list to add this game to:<br/>';
+			preHTML+='<a id="favAddDropdown" onclick="Dropdown.open(this);" class="dropdown">';
+			HTML=preHTML+HTML;
+			HTML+='</a>';
+			HTML+='<div class="details-button-pane"><a href="javascript:Fav.addToList(\''+id+'\',\''+name+'\')" class="button widebutton">done</a></div>';
+			HTML+='<br/><br/>';
+		}
+		var removeLists = Fav.findList(id);
+		if (removeLists.length!=0) {
+			HTML+='Select a list to remove this game from:<br/>';
+			HTML+='<a id="favRemoveDropdown" onclick="Dropdown.open(this);" class="dropdown">';
+			for (var i=0;i<removeLists.length;i++) {
+				var extraclass=' invis';
+				if(i==0) {
+					extraclass=' dropdown-active'
+				}
+				HTML+='<div id="'+escape(removeLists[i])+'" class="dropdown-item'+extraclass+'">';
+				HTML+='<span class="dropdownText">'+removeLists[i]+'</span>';
+				HTML+='</div>';
+			}
+			HTML+='</a>';
+			HTML+='<div class="details-button-pane"><a href="javascript:Fav.removeFromList(\''+id+'\', \''+name+'\')" class="button widebutton">done</a></div>';
+			HTML+='<br/><br/>';
+		}
+		document.getElementById('favManagementExtra').innerHTML=HTML;
+	}
+	$('.searchinput').css('width', $(window).width()-50+'px');
+	var createButton = document.getElementById('favCreateButton');
+	createButton.href = 'javascript:Fav.createList(\''+id+'\',\''+name+'\')';
+}
+
 function makeSearchPage() {
 	//Ugly fix for text input width
-	$('.searchinput').css('width', $(window).width()-66+'px');
+	$('.searchinput').css('width', $(window).width()-50+'px');
 }
 
 function makeAboutPage() {
@@ -337,6 +400,25 @@ function prepDetails(id, name) {
 	var url = 'covers/'+id+'.xml';
 	document.getElementById('details-page').innerHTML='';
 	var title, summary, HTML;
+	var pinButtonAction = 'Pin.add(\''+id+'\', \''+name+'\');';
+	var pinButtonText = 'Pin to main';
+	//var favButtonAction = '';
+	//var favButtonText = 'Add to favorites';
+	var favLists = Fav.lists();
+	if (!$.isEmptyObject(favLists)) {
+		var pinned = favLists.Pinned;
+		if (!$.isEmptyObject(pinned)) {
+			var index = Fav.findIndex(pinned, id, true);
+			if (index != -1) {
+				pinButtonAction = 'Pin.remove(\''+id+'\', \''+name+'\');';
+				pinButtonText = 'Remove from main';
+			}
+		}
+		/*var favTest = Fav.findList(id);
+		if (findList.length!=0) {
+			
+		}*/
+	}
 	$.ajax({
 		type: "GET",
 		url: url,
@@ -350,24 +432,33 @@ function prepDetails(id, name) {
 				title = $(xml).find('title').text();
 			}
 			summary = $(xml).find('summary').text();
+			var infoitems='';
+			$(xml).find('infoitem').each(function() {
+				//Add them all to a long HTML string
+				infoitems+=$(this).text()+'<br/>';
+			});
+			infoitems+='<br/>';
 			HTML='<div class="spacer"></div><div class="spacer"></div><span class="page-title">'+title+'</span><br/><br/><div class="page-wrapper">';
-			HTML+='<img class="details-cover" src="covers/'+id+'.jpg"/>'+summary+'<div class="details-button-pane">';
+			HTML+='<img class="details-cover" src="covers/'+id+'.jpg"/>';
+			HTML+='<span class="about-items">'+infoitems+'</span>'+summary+'<div class="details-button-pane">';
 			HTML+='<a class="button" href="javascript:launchGame(\''+id+'\');">Play</a>';
 			HTML+='<a class="button" href="javascript:history.back();">Close</a>';
-			HTML+='<a class="button" href="javascript:pinToMain(\''+id+'\', \''+name+'\');">Pin to start</a>';
-			HTML+='<a class="button" href="javascript:history.back();">Add to favorites</a>';
+			HTML+='<a class="button" href="javascript:'+pinButtonAction+'">'+pinButtonText+'</a>';
+			HTML+='<a class="button" href="#favoritesmanagement-page?'+id+'&'+name+'">Manage favorites</a>';
 			HTML+='</div></div>';
 			document.getElementById('details-page').innerHTML=HTML;
 		},
 		error: function() {
 			title=unescape(name);
+			var infoitems='';
 			summary="Betrayed by the ruling families of Italy, a young man embarks upon an epic quest for vengeance. To eradicate corruption and restore his family's honor, he will study the secrets of an ancient Codex, written by Altaïr. To his allies, he will become a force for change - fighting for freedom and justice. To his enemies, he will become a dark knight - dedicated to the destruction of the tyrants abusing the people of Italy. His name is Ezio Auditore da Firenze. He is an Assassin."
 			HTML='<div class="spacer"></div><div class="spacer"></div><span class="page-title">'+title+'</span><br/><br/><div class="page-wrapper">';
-			HTML+='<img class="details-cover" src="img/test.jpg"/>'+summary+'<div class="details-button-pane">';
+			HTML+='<img class="details-cover" src="img/test.jpg"/>';
+			HTML+='<span class="about-items">'+infoitems+'</span>'+summary+'<div class="details-button-pane">';
 			HTML+='<a class="button" href="javascript:launchGame(\''+id+'\');">Play</a>';
 			HTML+='<a class="button" href="javascript:history.back();">Close</a>';
-			HTML+='<a class="button" href="javascript:Pin.add(\''+id+'\', \''+name+'\');">Pin to start</a>';
-			HTML+='<a class="button" href="javascript:history.back();">Add to favorites</a>';
+			HTML+='<a class="button" href="javascript:'+pinButtonAction+'">'+pinButtonText+'</a>';
+			HTML+='<a class="button" href="#favoritesmanagement-page?'+id+'&'+name+'">Manage favorites</a>';
 			HTML+='</div></div>';
 			document.getElementById('details-page').innerHTML=HTML;
 		}
