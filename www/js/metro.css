@@ -227,6 +227,11 @@
 	line-height:22px;
 }
 
+.about-items a {
+	text-decoration:underline;
+	color:#bbbbbb;
+}
+
 .list-extra {
 	display:inline;
 	left:120px;
