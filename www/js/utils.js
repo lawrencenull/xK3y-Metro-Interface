@@ -324,7 +324,7 @@ var Pin = {
 	'remove': function (id, name) {
 		var listName = 'Pinned';
 		Fav.removeFromList(id, false, listName);
-		$('a[href^="#details-page?'+id+'"]').remove();
+		$('#main-screen').find('a[href^="#details-page?'+id+'"]').remove();
 		prepDetails(id, name);
 	}
 }
@@ -476,7 +476,8 @@ var Tile = {
 					nextState='animateUp';
 					break;
 				default:
-					alert('You messed up!');
+					alert('Your browser sucks! \nReport this shit to Waffles: \nYpos='+pos[2]+'\nIndex:'+index+'\nMeanwhile we\'ll just reset the animation');
+					nextState='animateUp';
 					break;
 			};
 			Tile[nextState](tile);
