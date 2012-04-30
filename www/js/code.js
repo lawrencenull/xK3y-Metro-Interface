@@ -438,8 +438,12 @@ function prepDetails(id, name) {
 			summary = $(xml).find('summary').text();
 			var infoitems='';
 			$(xml).find('infoitem').each(function() {
+				var string=$(this).text();
 				//Add them all to a long HTML string
-				infoitems+=$(this).text()+'<br/>';
+				if (string.indexOf('www')==0 || string.indexOf('http')==0) {
+					string = '<a href="'+string+'" target="_blank">'+string+'</a>';
+				}
+				infoitems+=string+'<br/>';
 			});
 			infoitems+='<br/>';
 			HTML='<div class="spacer"></div><div class="spacer"></div><span class="page-title">'+title+'</span><br/><br/><div class="page-wrapper">';
