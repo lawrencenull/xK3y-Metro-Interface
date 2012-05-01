@@ -1,23 +1,24 @@
 //Global variables needed
 var firstLoad=true;
 var colors = ['blue','red','green','mango','pink','brown','lime','teal','purple','magenta'];
-var dropDownFlag, animCounter, data, saveData;
+var dropDownFlag, animCounter, data, saveData, xK3yIP;
 var listsMade=false;
 var wallMade=false;
 var foldersMade=false;
 var t=true;
 //All the pages with linked functions
 var pages = {
-	'coverwall-page' 		: function(){makeCoverWallPage()},
-	'list-page' 			: function(args){makeListPage(args)},
-	'folderstructure-page'	: function(args){makeFolderStructurePage(args)},
-	'favorites-page' 		: function(args){makeFavoritesPage(args)},
-	'search-page' 			: function(){makeSearchPage()},
-	'about-page' 			: function(){makeAboutPage()},
-	'overlay' 				: function(args){makeOverlay(args)},
-	'details-page' 			: function(args){prepDetails(args)},
-	'main-screen'			: function(){},
-	'config-page'			: function(){}
+	'coverwall-page' 			: function(){makeCoverWallPage()},
+	'list-page' 				: function(args){makeListPage(args)},
+	'folderstructure-page'		: function(args){makeFolderStructurePage(args)},
+	'favorites-page' 			: function(args){makeFavoritesPage(args)},
+	'favoritesmanagement-page'	: function(args){makeFavManagementPage(args)},
+	'search-page' 				: function(){makeSearchPage()},
+	'about-page' 				: function(){makeAboutPage()},
+	'overlay' 					: function(args){makeOverlay(args)},
+	'details-page' 				: function(args){prepDetails(args)},
+	'main-screen'				: function(){},
+	'config-page'				: function(){}
 };
 //Default settings
 var defaultSettings = {
@@ -48,7 +49,6 @@ function getCurrentPage() {
 }
 
 function showPage(page) {
-	console.log(page);
 	//Always stop tile animation on page change
 	Tile.stop();
 	var allPages=[];
@@ -120,6 +120,8 @@ function search(input) {
 			name=results[i].name;
 			id=results[i].id;
 			cover='covers/'+id+'.jpg';
+			//debug cover
+			cover = 'img/test.jpg';
 			HTML+='<a href="#details-page?'+id+'&'+escape(name)+'"><div class="list-item" id="'+id+'"><div class="list-item-icon accent" style="background-image:url(\''+cover+'\'); background-size: 72px;"></div><span class="list-item-text">'+name+'</span></div></a>';
 		}
 		document.getElementById('searchResults').innerHTML=HTML;
@@ -127,7 +129,7 @@ function search(input) {
 }
 
 function openLetterOverlay() {
-	var letters = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
+	var letters = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","#"];
 	var avail = [];
 	$('div[id^="list-divider-"]').each(function() {
 		avail.push(this.id.slice(13,14));
@@ -183,26 +185,28 @@ function accentChange(color) {
 	Settings.save();
 }
 
-function backgroundDropdown() {
-	if (!dropDownFlag) {
-		var dropDown = $('#backgroundSelect');
-		var current = dropDown.children('.dropdown-active');
-		current.children('span').attr('onclick', 'setBackground(this.innerHTML)');
-		current.removeClass('dropdown-active');
-		dropDown.children('.dropdown-item').slideDown();
-		dropDown.attr('onclick','');
-		dropDownFlag=true;
-	}
-}
-
-function setBackground(color) {
-	if (dropDownFlag) {
-		var dropDown = $('#backgroundSelect');
-		$('#'+color).addClass('dropdown-active').attr('onclick','');
-		dropDown.children('.dropdown-item:not(.dropdown-active)').slideUp();
-		dropDown.attr('onclick','backgroundDropdown()');
-		//FF bug, delay being able to open the dropdown by 1 millisecond
-		setTimeout('dropDownFlag=false',1);
+var Dropdown = {
+	'open': function (element) {
+		if (!dropDownFlag) {
+			var dropDown = $(element);
+			var current = dropDown.children('.dropdown-active');
+			dropDown.find('span').attr('onclick', 'Dropdown.select(this.parentNode.parentNode, this.parentNode)');
+			dropDown.attr('onclick','');
+			current.removeClass('dropdown-active');
+			dropDown.children('.dropdown-item').slideDown();
+			dropDownFlag=true;
+		}
+	},
+	'select': function (element, item) {
+		if (dropDownFlag) {
+			var item = $(item);
+			var dropDown = $(element);
+			item.addClass('dropdown-active').attr('onclick','');
+			dropDown.children('.dropdown-item:not(".dropdown-active")').slideUp();
+			dropDown.attr('onclick','Dropdown.open(this)');
+			//FF bug, delay being able to open the dropdown by 1 millisecond
+			setTimeout('dropDownFlag=false',1);
+		}
 	}
 }
 
@@ -274,9 +278,13 @@ var Settings = {
 var Pin = {
 	'toMain': function (id, name) {
 		var HTML='';
+		var cover='covers/'+id+'.jpg';
+		//debug cover
+		cover = 'img/test.jpg';
+		var color=saveData.Settings.accent;
 		//Build the tile
 		HTML+='<a href="#details-page?'+id+'&'+escape(name)+'">';
-		HTML+='<div class="tile accent animate" style="background-image:url(\'covers/'+id+'.jpg\'); background-size: 173px;">';
+		HTML+='<div class="tile accent animate '+color+'" style="background-image:url(\''+cover+'\'); background-size: 173px;">';
 		HTML+='<span class="tile-title">'+name+'</span>';
 		HTML+='</div></a>';
 		//Append to main menu
@@ -307,39 +315,54 @@ var Pin = {
 			favLists={};
 		}
 		if (!(listName in favLists)) {
-			Fav.createList('Pinned', id, name);
+			Fav.createList(id, name, listName);
 			result = true;
 		}
 		else {
-			result = Fav.addToList('Pinned', id, name);
+			result = Fav.addToList(id, name, listName);
 		}
-		console.log(result);
 		if (result) {
 			Pin.toMain(id, name);
 		}
+		prepDetails(id, name);
+	},
+	'remove': function (id, name) {
+		var listName = 'Pinned';
+		Fav.removeFromList(id, false, listName);
+		$('#main-screen').find('a[href^="#details-page?'+id+'"]').remove();
+		prepDetails(id, name);
 	}
 }
 
 var Fav = {
-	'createList': function (listName, id, name) {
+	'createList': function (id, name, listName) {
+		if (!listName) {
+			listName = document.getElementById('favCreateInput').value;
+		}
 		var favLists = Fav.lists();
 		if ($.isEmptyObject(favLists)) {
 			favLists={};
 		}
 		else if (listName in favLists) {
-			MessageBox.Show('List "'+unescape(listName)+'" already exists!');
+			MessageBox.Show('Error', 'List "'+unescape(listName)+'" already exists!');
 			return;
 		}
 		favLists[listName]=[];
 		Fav.save(favLists, false);
-		Fav.addToList(listName, id, name);
+		Fav.addToList(id, name, listName);
+		makeFavManagementPage(['page', id+'&'+name]);
 	},
 	'removeList': function (listName) {
 		var favLists = Fav.lists();
 		delete favLists[listName];
 		Fav.save(favLists, true);
 	},
-	'addToList': function (listName, id, name) {
+	'addToList': function (id, name, listName) {
+		var flag=false;
+		if (!listName) {
+			listName = unescape($('#favAddDropdown').children('.dropdown-active').attr('id'));
+			flag=true;
+		}
 		var favLists = Fav.lists();
 		var gameList = favLists[listName];
 		var inList = Fav.findList(id);
@@ -353,17 +376,29 @@ var Fav = {
 			return false;
 		}
 		Fav.save(favLists, true);
+		if (flag) {
+			makeFavManagementPage(['page', id+'&'+name]);
+			return;
+		}
 		return true;
 	},
-	'removeFromList': function (listName, id) {
+	'removeFromList': function (id, name, listName) {
+		var flag=false;
+		if (!listName) {
+			listName = unescape($('#favRemoveDropdown').children('.dropdown-active').attr('id'));
+			flag=true;
+		}
 		var favLists = Fav.lists();
 		var gameList = favLists[listName];
 		var index = Fav.findIndex(gameList, id);
 		gameList.splice(index,1);
 		if (gameList.length==0) {
-			removeList(listName);
+			Fav.removeList(listName);
 		}
 		Fav.save(favLists, true);
+		if (flag) {
+			makeFavManagementPage(['page', id+'&'+name]);
+		}
 	},
 	'findList': function (id) {
 		var savedFavLists = Fav.lists();
@@ -373,7 +408,13 @@ var Fav = {
 		}
 		return foundLists;
 	},
-	'findIndex': function (array, id) {
+	'findIndex': function (array, id, game) {
+		if (game) {
+			for (var i=0; i<array.length; i++) {
+				if (array[i].id==id) return i;
+			}
+			return -1;
+		}
 		for (var i=0; i<array.length; i++) {
 			if (array[i]==id) return i;
 		}
@@ -387,9 +428,6 @@ var Fav = {
 		if (toServer) {
 			Settings.save();
 		}
-	},
-	'makePage': function (listName) {
-		console.log(listName);
 	}
 }
 
@@ -443,7 +481,8 @@ var Tile = {
 					nextState='animateUp';
 					break;
 				default:
-					alert('You messed up!');
+					alert('Your browser sucks! \nReport this shit to Waffles: \nYpos='+pos[2]+'\nIndex:'+index+'\nMeanwhile we\'ll just reset the animation');
+					nextState='animateUp';
 					break;
 			};
 			Tile[nextState](tile);
@@ -492,7 +531,7 @@ function updateActive(id) {
 }
 
 function scrollToLetter(letter) {
-	window.scroll(0,$('#list-divider-'+letter).offset().top);
+	window.scroll(0,$(document.getElementById('list-divider-'+letter)).offset().top);
 }
 
 function scrollUp() {
@@ -504,3 +543,7 @@ function toArray(strg){
     var res = strg.match(/(-?[0-9\.]+)(px|\%|em|pt)\s(-?[0-9\.]+)(px|\%|em|pt)/);
     return [parseFloat(res[1],10),res[2],parseFloat(res[3],10),res[4]];
 }
+
+function isNumber (o) { 
+  return ! isNaN (o-0); 
+} 

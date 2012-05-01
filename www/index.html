@@ -4,10 +4,7 @@
 		<title>xK3y Remote Web Interface</title>
 		<meta id="viewportmeta" name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0,width=480,height=728"/>
 		<script type="text/javascript">
-		if (screen.width == 480) {
-			var mvp = document.getElementById('testViewport');
-			mvp.setAttribute('content','width=320');
-		}
+		
 		</script>
 
 		<link type="text/css" rel="stylesheet" href="js/metro.css" />
@@ -17,12 +14,17 @@
 	</head>
 	<body>
 		<!-- MessageBox Placeholder -->
-		<div id="MessageBox" class="page active"></div>
+		<div id="MessageBox" class="page"></div>
 		<!-- Overlay Placeholder -->
 		<div id="overlay" class="page"></div>
 		<div class="main-container" id="main">
 			<div class="spacer"></div>
 			<span class="title">XK3Y WEB INTERFACE</span><br/>
+			<div class="homeButton">
+				<a href="#main-screen">
+					<img src="img/home.png"/>
+				</a>
+			</div>
 			<div class="page active" id="main-screen">
 				<div class="spacer"></div><div class="spacer"></div>
 				<span class="page-title">main</span><br/><br/>
@@ -71,6 +73,11 @@
 						<span class="tile-title">about</span>
 					</div>
 				</a>
+				<!--<a href="#favoritesmanagement-page?8f21c54b0ea58abf9f4d446e6abe3ba38b56fa11&Brutal%20Legend">
+					<div class="tile about accent">
+						<span class="tile-title">about</span>
+					</div>
+				</a>-->
 				<!--<div class="tile troll accent animate">
 					<span class="tile-title tile-animate">test</span>
 				</div>
@@ -163,15 +170,23 @@
 					<div class="about-items">
 						Made by Mr_Waffle<br/>
 						Version: <span id="version"></span><br/>
-						Working menus:<br/>
-						- coverwall<br/>
-						- lists<br/>
-						- folder structure<br/>
-						- search<br/>
-						- config<br/>
-						- about<br/>
+						Source: <a href="https://github.com/MrWaffle/xK3y-Metro-Interface" target="_blank">Github</a>
 					</div>
 					<br/>
+				</div>
+			</div>
+			<!-- Favorite Management Page Markup -->
+			<div id="favoritesmanagement-page" class="page">
+				<div class="spacer"></div><div class="spacer"></div>
+				<span class="page-title">fav management</span><br/><br/>
+				<div class="page-wrapper" id="favoritemanagementcontainer">
+					Create a new list:<br/>
+					<input id="favCreateInput" type="text" value="List name..." class="searchinput"/><br/>
+					<div class="details-button-pane">
+						<a id="favCreateButton" href="" class="button widebutton">done</a>
+						<br/><br/>
+					</div>
+					<div id="favManagementExtra"></div>
 				</div>
 			</div>
 			<!-- Game Details Page Placeholder -->
