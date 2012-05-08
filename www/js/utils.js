@@ -27,6 +27,7 @@ var defaultSettings = {
 }
 
 $(document).ready(function() {
+	Pages.allPages = pages;
 	getData();
 	/*if (document.documentElement.clientWidth>480) {
 		viewport = document.querySelector("meta[name=viewport]"); 
@@ -51,7 +52,7 @@ function getCurrentPage() {
 function showPage(page) {
 	//Always stop tile animation on page change
 	Tile.stop();
-	var allPages=[];
+	var allPages = Pages.allPages;
 	var args;
 	if (!page) {
 		page='main-screen';
@@ -70,27 +71,30 @@ function showPage(page) {
 	if (page.indexOf('%')==-1) {
 		page=escape(page);
 	}
-	$('.page').each(function() {
-		allPages.push(this.id);
-	});
 	//Hide all pages
-	for (var i=0;i<allPages.length;i++) {
-		if ($(document.getElementById(allPages[i])).hasClass('active')) {
-			$(document.getElementById(allPages[i])).removeClass('active');
+	for (var i in allPages) {
+		if ($(document.getElementById(i)).hasClass('active')) {
+			$(document.getElementById(i)).removeClass('active');
 		}
 	}
 	//Show requested page
 	if (!$(document.getElementById(page)).hasClass('active')) {
 		$(document.getElementById(page)).addClass('active');
 	}
-	/*if (args!=null) {
-		pages[page](args);
+	
+	if (!$.isFunction(allPages[page])) {
+		//PANIC
+		//A non-registered page has been requested
+		//This function handles hashchanges
+		//So it will loop until we get a safe page
+		history.back();
+		//Prevent calling page related functions
 		return;
-	}*/
+	}
+	
 	//Call function related to page
-	//if (page.indexOf('-dir')==-1) {
-		pages[page](args);
-	//}
+	allPages[page](args);
+
 	//Trigger tile animation for the page, function determines if there will be animation
 	Tile.init(page);
 	return;
@@ -120,6 +124,8 @@ function search(input) {
 			name=results[i].name;
 			id=results[i].id;
 			cover='covers/'+id+'.jpg';
+			//debug cover
+			//cover = 'img/test.jpg';
 			HTML+='<a href="#details-page?'+id+'&'+escape(name)+'"><div class="list-item" id="'+id+'"><div class="list-item-icon accent" style="background-image:url(\''+cover+'\'); background-size: 72px;"></div><span class="list-item-text">'+name+'</span></div></a>';
 		}
 		document.getElementById('searchResults').innerHTML=HTML;
@@ -276,10 +282,13 @@ var Settings = {
 var Pin = {
 	'toMain': function (id, name) {
 		var HTML='';
+		var cover='covers/'+id+'.jpg';
+		//debug cover
+		//cover = 'img/test.jpg';
 		var color=saveData.Settings.accent;
 		//Build the tile
 		HTML+='<a href="#details-page?'+id+'&'+escape(name)+'">';
-		HTML+='<div class="tile accent animate '+color+'" style="background-image:url(\'covers/'+id+'.jpg\'); background-size: 173px;">';
+		HTML+='<div class="tile accent animate '+color+'" style="background-image:url(\''+cover+'\'); background-size: 173px;">';
 		HTML+='<span class="tile-title">'+name+'</span>';
 		HTML+='</div></a>';
 		//Append to main menu
@@ -350,6 +359,7 @@ var Fav = {
 	'removeList': function (listName) {
 		var favLists = Fav.lists();
 		delete favLists[listName];
+		Pages.removePage(listName+'-list');
 		Fav.save(favLists, true);
 	},
 	'addToList': function (id, name, listName) {
@@ -424,6 +434,34 @@ var Fav = {
 			Settings.save();
 		}
 	}
+}
+
+var Pages = {
+	'newPage': function (id, name, func) {
+		if (id.indexOf('%')==-1) {
+			id=escape(id);
+		}
+		var page = '<div id="'+id+'" class="page"><div class="spacer"></div><div class="spacer"></div><span class="page-title">'+unescape(name)+'</span><br/><br/></div>';
+		//#main is the main container, append page to there
+		document.getElementById('main').innerHTML+=page;
+		if (!func) {
+			func = function(){};
+		}
+		//Register page
+		Pages.allPages[id]=func;
+	},
+	'removePage': function (id) {
+		if (id.indexOf('%')==-1) {
+			id=escape(id);
+		}
+		var selector = document.getElementById(id);
+		var page = $(selector);
+		//Clean up HTML
+		page.remove();
+		//Unregister page
+		delete Pages.allPages[id];
+	},
+	'allPages': {}
 }
 
 var Tile = {
