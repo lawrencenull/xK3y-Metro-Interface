@@ -1,1 +1,5 @@
 A custom web interface for the xK3y with a Metro designed interface.
+
+Menu forming scripts in www/js/code.js
+"Background" scripts in www/js/utils.js
+Font files are mostly still junk files, have yet to remove them from the workspace.
