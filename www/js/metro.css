@@ -14,7 +14,7 @@
 	border:none;
 }
 
-.homeButton {
+.homeButtonOrig {
 	position:absolute;
 	right:12px;
 	top:30px;
@@ -22,12 +22,13 @@
 	z-index:99999
 }
 
-.homeButton img {
-	width:48px;
+.homeButton {
+	width:24px;
 	display:inline;
 	border:none;
 	position:relative;
-	top:18px;
+	top:6px;
+	left:6px;
 }
 
 .tile {
