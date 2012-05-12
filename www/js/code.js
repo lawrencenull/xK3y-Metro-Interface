@@ -114,7 +114,7 @@ function makeCoverWallPage() {
 			id = ISOlist[i].id;
 			cover = ISOlist[i].image;
 			//debug cover
-			cover = 'img/test.jpg';
+			//cover = 'img/test.jpg';
 			HTML+='<a href="#details-page?'+id+'&'+escape(iso)+'"><div class="tile accent animate" style="background-image:url(\''+cover+'\'); background-size: 173px;"><span class="tile-title">'+iso+'</span></div></a>';
 			cur++;
 			/*if (cur == 2) {
@@ -159,7 +159,7 @@ function makeListPage(args) {
 			id = ISOlist[i].id;
 			cover = ISOlist[i].image;
 			//debug cover
-			cover = 'img/test.jpg';
+			//cover = 'img/test.jpg';
 			letter = iso.charAt(0).toLowerCase();
 			if(isNumber(letter)) {
 				letter='#';
@@ -209,10 +209,7 @@ function makeFolderStructurePage(args) {
 			chk = data.drives.toString().indexOf(par);
 			if ($('div#'+dir+'-dir').length==0) {
 				//Create a new page
-				HTML='<div id="'+dir+'-dir" class="page"><div class="spacer"></div><div class="spacer"></div><span class="page-title">'+unescape(dir)+'</span><br/><br/></div>';
-				document.getElementById('main').innerHTML+=HTML;
-				//Register new page with empty function
-				pages[dir+'-dir']=function(){};
+				Pages.newPage(dir+'-dir', dir);
 			}
 			if (chk!=-1) {
 				par1 = 'folderstructurecontainer';
@@ -234,7 +231,7 @@ function makeFolderStructurePage(args) {
 			par = escape(data.ISOlist[i].par);
 			cover = data.ISOlist[i].image;
 			//debug cover
-			cover = 'img/test.jpg';
+			//cover = 'img/test.jpg';
 			chk = data.drives.toString().indexOf(par);
 			//Same parent fix as with directories
 			if (chk!=-1) {
@@ -288,9 +285,8 @@ function makeFavoritesPage(args) {
 		for (var i=0; i<l; i++) {
 			listName=lists[i];
 			//Create a new page
-			if ($('div#'+escape(listName)+'-list').length==0) {
-				HTML='<div id="'+escape(listName)+'-list" class="page"><div class="spacer"></div><div class="spacer"></div><span class="page-title">'+listName+'</span><br/><br/></div>';
-				document.getElementById('main').innerHTML+=HTML;
+			if ($(document.getElementById(escape(listName)+'-list')).length==0) {
+				Pages.newPage(listName+'-list', listName);
 				gameList = favLists[listName];
 				var k = gameList.length;
 				HTML='';
@@ -299,7 +295,7 @@ function makeFavoritesPage(args) {
 					name = gameList[i].name;
 					cover = 'covers/'+id+'.jpg';
 					//debug cover
-					cover = 'img/test.jpg';
+					//cover = 'img/test.jpg';
 					HTML+='<a href="#details-page?'+id+'&'+escape(name)+'"><div class="tile accent animate '+color+'" style="background-image:url(\''+cover+'\'); background-size: 173px;"><span class="tile-title">'+name+'</span></div></a>';
 				}
 				document.getElementById(escape(listName)+'-list').innerHTML+=HTML;

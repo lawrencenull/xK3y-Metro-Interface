@@ -264,6 +264,7 @@ a.widebutton {
 .searchinput {
 	padding:6px;
 	font-size:15pt;
+	color:#000000;
 }
 
 .dropdown {
@@ -342,7 +343,7 @@ a.widebutton {
 
 .favlist {
 	background-image:url('../img/favlist.png');
-	background-size: 173px;
+	background-size: 173px 173px;
 }
 
 .troll {
