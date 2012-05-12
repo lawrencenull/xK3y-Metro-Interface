@@ -50,7 +50,7 @@ function getCurrentPage() {
 }
 
 function showPage(page) {
-	console.log('Hash change handled');
+	//console.log('Hash change handled');
 	//Always stop tile animation on page change
 	Tile.stop();
 	var allPages = Pages.allPages;
