@@ -165,10 +165,10 @@ function accentPopup() {
 	var current=saveData['Settings'].accent;
 	for (var i=0; i<colors.length; i++) {
 		if (colors[i]==current) {
-			HTML+='<a href="javascript:history.back()" onclick="accentChange(\''+colors[i]+'\')"><div class="accent-item"><div class="accent-item-icon '+colors[i]+'"></div><span class="accent-item-text '+colors[i]+'-text">'+colors[i]+'</span></div></a>';
+			HTML+='<a href="javascript:history.back()" onclick="accentChange(\''+colors[i]+'\', true)"><div class="accent-item"><div class="accent-item-icon '+colors[i]+'"></div><span class="accent-item-text '+colors[i]+'-text">'+colors[i]+'</span></div></a>';
 		}
 		else {
-			HTML+='<a href="javascript:history.back()" onclick="accentChange(\''+colors[i]+'\')"><div class="accent-item"><div class="accent-item-icon '+colors[i]+'"></div><span class="accent-item-text">'+colors[i]+'</span></div></a>';
+			HTML+='<a href="javascript:history.back()" onclick="accentChange(\''+colors[i]+'\', true)"><div class="accent-item"><div class="accent-item-icon '+colors[i]+'"></div><span class="accent-item-text">'+colors[i]+'</span></div></a>';
 		}
 	}
 	document.getElementById('overlay').innerHTML=HTML;
@@ -176,7 +176,7 @@ function accentPopup() {
 	firstLoad=false;
 }
 
-function accentChange(color) {
+function accentChange(color, save) {
 	var cur=saveData['Settings'].accent;
 	//Tiles & other solid stuff
 	$('.accent').removeClass(cur).addClass(color);
@@ -187,7 +187,9 @@ function accentChange(color) {
 	//Config button show correct color name
 	$('#accentSelect span').html(color);
 	saveData['Settings'].accent=color;
-	Settings.save();
+	if (save) {
+		Settings.save();
+	}
 }
 
 var Dropdown = {
@@ -515,7 +517,7 @@ var Tile = {
 					nextState='animateUp';
 					break;
 				default:
-					alert('Your browser sucks! \nReport this shit to Waffles: \nYpos='+pos[2]+'\nIndex:'+index+'\nMeanwhile we\'ll just reset the animation');
+					//alert('Your browser sucks! \nReport this shit to Waffles: \nYpos='+pos[2]+'\nIndex:'+index+'\nMeanwhile we\'ll just reset the animation');
 					nextState='animateUp';
 					break;
 			};

@@ -284,32 +284,35 @@ function makeFavoritesPage(args) {
 		tileHTML='';
 		for (var i=0; i<l; i++) {
 			listName=lists[i];
+			var page = $(document.getElementById(escape(listName)+'-list'));
 			//Create a new page
-			if ($(document.getElementById(escape(listName)+'-list')).length==0) {
+			if (page.length==0) {
 				Pages.newPage(listName+'-list', listName);
-				gameList = favLists[listName];
-				var k = gameList.length;
-				HTML='';
-				for (var j=0; j<k; j++) {
-					id = gameList[i].id;
-					name = gameList[i].name;
-					cover = 'covers/'+id+'.jpg';
-					//debug cover
-					//cover = 'img/test.jpg';
-					HTML+='<a href="#details-page?'+id+'&'+escape(name)+'"><div class="tile accent animate '+color+'" style="background-image:url(\''+cover+'\'); background-size: 173px;"><span class="tile-title">'+name+'</span></div></a>';
-				}
-				document.getElementById(escape(listName)+'-list').innerHTML+=HTML;
-				//Register new page with empty function
-				pages[escape(listName)+'-list']=function(){};
 			}
+			gameList = favLists[listName];
+			var k = gameList.length;
+			HTML='';
+			for (var j=0; j<k; j++) {
+				id = gameList[j].id;
+				name = gameList[j].name;
+				cover = 'covers/'+id+'.jpg';
+				href= '#details-page?'+id+'&'+escape(name);
+				if (page.find('a[href="'+href+'"]').length!=0) {
+					continue;
+				}
+				//debug cover
+				//cover = 'img/test.jpg';
+				HTML+='<a href="'+href+'"><div class="tile accent animate '+color+'" style="background-image:url(\''+cover+'\'); background-size: 173px;"><span class="tile-title">'+name+'</span></div></a>';
+			}
+			document.getElementById(escape(listName)+'-list').innerHTML+=HTML;
 			//Tile HTML
 			tileHTML+='<a href="#favorites-page?'+escape(listName)+'-list">';
 			tileHTML+='<div class="tile accent favlist '+color+'">';
 			tileHTML+='<span class="tile-title">'+listName+'</span>';
 			tileHTML+='</div></a>';
 		}
-		document.getElementById('favoritescontainer').innerHTML=tileHTML;
 	}
+	document.getElementById('favoritescontainer').innerHTML=tileHTML;
 }
 
 function makeFavManagementPage(args) {
