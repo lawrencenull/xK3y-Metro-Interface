@@ -373,14 +373,14 @@ function makeFavManagementPage(args) {
 		}
 		document.getElementById('favManagementExtra').innerHTML=HTML;
 	}
-	$('.searchinput').css('width', $(window).width()-50+'px');
+	fixTextInput();
 	var createButton = document.getElementById('favCreateButton');
 	createButton.href = 'javascript:Fav.createList(\''+id+'\',\''+name+'\')';
 }
 
 function makeSearchPage() {
 	//Ugly fix for text input width
-	$('.searchinput').css('width', $(window).width()-50+'px');
+	fixTextInput();
 }
 
 function makeAboutPage() {

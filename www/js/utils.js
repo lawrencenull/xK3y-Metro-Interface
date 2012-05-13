@@ -1,7 +1,7 @@
 //Global variables needed
 var firstLoad=true;
 var colors = ['blue','red','green','mango','pink','brown','lime','teal','purple','magenta'];
-var dropDownFlag, animCounter, data, saveData, xK3yIP;
+var dropDownFlag, animCounter, data, saveData, xK3yIP, resizeTimer;
 var listsMade=false;
 var wallMade=false;
 var foldersMade=false;
@@ -25,6 +25,11 @@ var defaultSettings = {
 	'accent' : 'blue',
 	'metro' : true
 }
+
+$(window).resize(function() { 
+    clearTimeout(resizeTimer); 
+    resizeTimer = setTimeout(fixTextInput, 100); 
+});
 
 $(document).ready(function() {
 	Pages.allPages = pages;
@@ -582,4 +587,8 @@ function toArray(strg){
 
 function isNumber (o) { 
   return ! isNaN (o-0); 
-} 
+}
+
+function fixTextInput() {
+	$('.searchinput').css('width', $(window).width()-50+'px');
+}
