@@ -1,4 +1,4 @@
-var version='0.07';
+var version='0.08';
 //Some global variables needed
 var data;
 var saveData;
