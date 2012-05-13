@@ -4,7 +4,6 @@
 		<title>xK3y Remote Web Interface</title>
 		<meta id="viewportmeta" name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0,width=480,height=728"/>
 		<script type="text/javascript">
-		
 		</script>
 
 		<link type="text/css" rel="stylesheet" href="js/metro.css" />
@@ -12,7 +11,7 @@
 		<script type="text/javascript" src="js/utils.js"></script>
 		<script type="text/javascript" src="js/code.js"></script>
 	</head>
-	<body>
+	<body bgcolor="black">
 		<!-- MessageBox Placeholder -->
 		<div id="MessageBox" class="page"></div>
 		<!-- Overlay Placeholder -->
@@ -120,9 +119,7 @@
 			<div id="favorites-page" class="page">
 				<div class="spacer"></div><div class="spacer"></div>
 				<span class="page-title">favorites</span><br/><br/>
-				<div class="page-wrapper" id="favoritescontainer">
-					Nothing to see here yet.
-				</div>
+				<div class="page-wrapper" id="favoritescontainer"></div>
 			</div>
 			<!-- Search Page Placeholder -->
 			<div id="search-page" class="page">
@@ -169,7 +166,8 @@
 					<div class="about-items">
 						Made by Mr_Waffle<br/>
 						Version: <span id="version"></span><br/>
-						Source: <a href="https://github.com/MrWaffle/xK3y-Metro-Interface" target="_blank">Github</a>
+						Source: <a href="https://github.com/MrWaffle/xK3y-Metro-Interface" target="_blank">Github</a><br/>
+						<a href="javascript:Settings.reset()">Delete all saved data</a>
 					</div>
 					<br/>
 				</div>
@@ -186,6 +184,11 @@
 						<br/><br/>
 					</div>
 					<div id="favManagementExtra"></div>
+					When you're done, you can go back by clicking "close"
+					<div class="details-button-pane">
+						<a href="javascript:history.back()" class="button widebutton">close</a>
+						<br/><br/>
+					</div>
 				</div>
 			</div>
 			<!-- Game Details Page Placeholder -->

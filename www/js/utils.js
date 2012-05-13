@@ -284,6 +284,10 @@ var Settings = {
 		saveData['Settings'] = $.extend(saveData['Settings'],defaultSettings);
 		Settings.save();
 		Settings.init();
+	},
+	'reset': function () {
+		saveData="";
+		Settings.save();
 	}
 }
 
