@@ -1,7 +1,7 @@
 //Global variables needed
 var firstLoad=true;
 var colors = ['blue','red','green','mango','pink','brown','lime','teal','purple','magenta'];
-var dropDownFlag, animCounter, data, saveData, xK3yIP;
+var dropDownFlag, animCounter, data, saveData, xK3yIP, resizeTimer;
 var listsMade=false;
 var wallMade=false;
 var foldersMade=false;
@@ -25,6 +25,11 @@ var defaultSettings = {
 	'accent' : 'blue',
 	'metro' : true
 }
+
+$(window).resize(function() { 
+    clearTimeout(resizeTimer); 
+    resizeTimer = setTimeout(fixTextInput, 100); 
+});
 
 $(document).ready(function() {
 	Pages.allPages = pages;
@@ -50,6 +55,7 @@ function getCurrentPage() {
 }
 
 function showPage(page) {
+	//console.log('Hash change handled');
 	//Always stop tile animation on page change
 	Tile.stop();
 	var allPages = Pages.allPages;
@@ -72,15 +78,14 @@ function showPage(page) {
 		page=escape(page);
 	}
 	//Hide all pages
-	for (var i in allPages) {
-		if ($(document.getElementById(i)).hasClass('active')) {
-			$(document.getElementById(i)).removeClass('active');
-		}
-	}
+	//for (var i in allPages) {
+		//if ($(document.getElementById(i)).hasClass('active')) {
+			//$(document.getElementById(i)).removeClass('active');
+			$('.page.active').removeClass('active');
+		//}
+	//}
 	//Show requested page
-	if (!$(document.getElementById(page)).hasClass('active')) {
-		$(document.getElementById(page)).addClass('active');
-	}
+	$(document.getElementById(page)).addClass('active');
 	
 	if (!$.isFunction(allPages[page])) {
 		//PANIC
@@ -164,10 +169,10 @@ function accentPopup() {
 	var current=saveData['Settings'].accent;
 	for (var i=0; i<colors.length; i++) {
 		if (colors[i]==current) {
-			HTML+='<a href="javascript:history.back()" onclick="accentChange(\''+colors[i]+'\')"><div class="accent-item"><div class="accent-item-icon '+colors[i]+'"></div><span class="accent-item-text '+colors[i]+'-text">'+colors[i]+'</span></div></a>';
+			HTML+='<a href="javascript:history.back()" onclick="accentChange(\''+colors[i]+'\', true)"><div class="accent-item"><div class="accent-item-icon '+colors[i]+'"></div><span class="accent-item-text '+colors[i]+'-text">'+colors[i]+'</span></div></a>';
 		}
 		else {
-			HTML+='<a href="javascript:history.back()" onclick="accentChange(\''+colors[i]+'\')"><div class="accent-item"><div class="accent-item-icon '+colors[i]+'"></div><span class="accent-item-text">'+colors[i]+'</span></div></a>';
+			HTML+='<a href="javascript:history.back()" onclick="accentChange(\''+colors[i]+'\', true)"><div class="accent-item"><div class="accent-item-icon '+colors[i]+'"></div><span class="accent-item-text">'+colors[i]+'</span></div></a>';
 		}
 	}
 	document.getElementById('overlay').innerHTML=HTML;
@@ -175,7 +180,7 @@ function accentPopup() {
 	firstLoad=false;
 }
 
-function accentChange(color) {
+function accentChange(color, save) {
 	var cur=saveData['Settings'].accent;
 	//Tiles & other solid stuff
 	$('.accent').removeClass(cur).addClass(color);
@@ -186,7 +191,9 @@ function accentChange(color) {
 	//Config button show correct color name
 	$('#accentSelect span').html(color);
 	saveData['Settings'].accent=color;
-	Settings.save();
+	if (save) {
+		Settings.save();
+	}
 }
 
 var Dropdown = {
@@ -276,6 +283,10 @@ var Settings = {
 		saveData['Settings'] = $.extend(saveData['Settings'],defaultSettings);
 		Settings.save();
 		Settings.init();
+	},
+	'reset': function () {
+		saveData="";
+		Settings.save();
 	}
 }
 
@@ -514,7 +525,7 @@ var Tile = {
 					nextState='animateUp';
 					break;
 				default:
-					alert('Your browser sucks! \nReport this shit to Waffles: \nYpos='+pos[2]+'\nIndex:'+index+'\nMeanwhile we\'ll just reset the animation');
+					//alert('Your browser sucks! \nReport this shit to Waffles: \nYpos='+pos[2]+'\nIndex:'+index+'\nMeanwhile we\'ll just reset the animation');
 					nextState='animateUp';
 					break;
 			};
@@ -579,4 +590,8 @@ function toArray(strg){
 
 function isNumber (o) { 
   return ! isNaN (o-0); 
-} 
+}
+
+function fixTextInput() {
+	$('.searchinput').css('width', $(window).width()-50+'px');
+}
