@@ -78,15 +78,14 @@ function showPage(page) {
 		page=escape(page);
 	}
 	//Hide all pages
-	for (var i in allPages) {
-		if ($(document.getElementById(i)).hasClass('active')) {
-			$(document.getElementById(i)).removeClass('active');
-		}
-	}
+	//for (var i in allPages) {
+		//if ($(document.getElementById(i)).hasClass('active')) {
+			//$(document.getElementById(i)).removeClass('active');
+			$('.page.active').removeClass('active');
+		//}
+	//}
 	//Show requested page
-	if (!$(document.getElementById(page)).hasClass('active')) {
-		$(document.getElementById(page)).addClass('active');
-	}
+	$(document.getElementById(page)).addClass('active');
 	
 	if (!$.isFunction(allPages[page])) {
 		//PANIC

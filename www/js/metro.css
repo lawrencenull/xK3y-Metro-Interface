@@ -88,7 +88,8 @@
 .messagebox-title {
 	margin-bottom:6px;
 	display:block;
-	font-family:"Segoe WP bold";
+	font-family:"Segoe WP bold","Segoe UI","Helvetica";
+	
 	font-size:24pt;
 }
 
@@ -412,13 +413,14 @@ a {
 }
 
 .bold {
-	font-family:"Segoe WP bold";
+	font-family:"Segoe WP bold","Segoe UI","Helvetica";
+	font-weight:bold;
 }
 
 html {
 	color:white;
 	background-color:black;
-	font-family:"Segoe UI","Segoe UI";
+	font-family:"Segoe UI","Helvetica";
 	font-weight:100;
 	font-size:15pt;
 }

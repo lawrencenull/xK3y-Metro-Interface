@@ -177,7 +177,7 @@ function makeListPage(args) {
 			}
 			HTML+='<a href="#details-page?'+id+'&'+escape(iso)+'"><div class="list-item game '+id+'"><div class="list-item-icon accent" style="background-image:url(\''+cover+'\'); background-size: 72px;"></div><span class="list-item-text'+activeClass+'">'+iso+'</span></div></a>';
 		}
-		HTML+='<br/>';
+		HTML+='<a href="javascript:scrollUp()"><div class="list-item game"><div class="list-item-icon accent" style="background-image:url(\'img/up.png\'); background-size: 72px;"></div><span class="list-item-text">Scroll up</span></div></a><br/>';
 		//Native approach should be faster
 		document.getElementById('listcontainer').innerHTML=HTML;
 		$(".easydate").easydate();
@@ -327,11 +327,14 @@ function makeFavManagementPage(args) {
 		for (var i in favLists) {
 			favListNames.push(i);
 		}
+		var first = true;
 		for (var i=0;i<favListNames.length;i++) {
 			var flag=false;
 			var extraclass=' invis';
+			//Find all lists this game is in
 			var exists = Fav.findList(id);
 			for (var j=0;j<exists.length;j++) {
+				//Loop through all, continue if game is in current list
 				if (favListNames[i]==exists[j]) {
 					flag=true;
 				}
@@ -339,12 +342,13 @@ function makeFavManagementPage(args) {
 			if (flag) {
 				continue;
 			}
-			if(i==0) {
+			if(first) {
 				extraclass=' dropdown-active'
 			}
 			HTML+='<div id="'+escape(favListNames[i])+'" class="dropdown-item'+extraclass+'">';
 			HTML+='<span class="dropdownText">'+favListNames[i]+'</span>';
 			HTML+='</div>';
+			first = false;
 		}
 		if (HTML.length!=0) {
 			var preHTML='Select a list to add this game to:<br/>';
