@@ -268,6 +268,10 @@ a.widebutton {
 	color:#000000;
 }
 
+.inputDisabled {
+	background-color:#BEBEBE;
+}
+
 .dropdown {
 	margin-left:0px;
 	margin-right:24px;
@@ -544,10 +548,10 @@ html {
 .magenta-border {
 	border-color:#D80073!important;
 }
-
+/*
 @media all and (max-device-width: 320px) {
 	.tile {
 		width: 115px;
 		height: 115px;
 	}
-}
+}*/

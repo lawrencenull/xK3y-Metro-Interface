@@ -1,4 +1,4 @@
-var version='0.08';
+var version='0.09';
 //Some global variables needed
 var data;
 var saveData;
@@ -312,16 +312,23 @@ function makeFavoritesPage(args) {
 			tileHTML+='</div></a>';
 		}
 	}
+	tileHTML+='<a href="#favoritesmanagement-page?main">';
+	tileHTML+='<div class="tile accent config '+color+'">';
+	tileHTML+='<span class="tile-title">Management</span>';
+	tileHTML+='</div></a>';
 	document.getElementById('favoritescontainer').innerHTML=tileHTML;
 }
 
 function makeFavManagementPage(args) {
 	document.getElementById('favManagementExtra').innerHTML='';
-	var tmp=args[1].split('&',2);
-	var id = tmp[0];
-	var name = tmp[1];
+	var tmp, id, name;
+	if (args[1]!="main") {
+		tmp=args[1].split('&',2);
+		id = tmp[0];
+		name = tmp[1];
+	}
 	var favLists = Fav.lists();
-	if (!$.isEmptyObject(favLists)) {
+	if (!$.isEmptyObject(favLists) && args[1] != "main") {
 		var HTML='';
 		var favListNames = [];
 		for (var i in favLists) {
@@ -377,9 +384,59 @@ function makeFavManagementPage(args) {
 		}
 		document.getElementById('favManagementExtra').innerHTML=HTML;
 	}
+	if (!$.isEmptyObject(favLists) && args[1]=="main") {
+		var listHTML='';
+		var favListNames = [];
+		for (var i in favLists) {
+			favListNames.push(i);
+		}
+		var first = true;
+		for (var i=0;i<favListNames.length;i++) {
+			var extraclass=' invis';
+			if(first) {
+				extraclass=' dropdown-active'
+			}
+			listHTML+='<div id="'+escape(favListNames[i])+'" class="dropdown-item'+extraclass+'">';
+			listHTML+='<span class="dropdownText">'+favListNames[i]+'</span>';
+			listHTML+='</div>';
+			first = false;
+		}
+		
+		var preHTML='Select a list to remove:<br/>';
+		preHTML+='<a id="listRemoveDropdown" onclick="Dropdown.open(this);" class="dropdown">';
+		HTML=preHTML+listHTML;
+		HTML+='</a>';
+		HTML+='<div class="details-button-pane"><a href="javascript:Fav.removeList(undefined,true)" class="button widebutton">done</a></div>';
+		HTML+='<br/><br/>';
+		
+		//Mass game adding
+		var preHTML='Select a list to mass add to:<br/>';
+		preHTML+='<a id="massAddDropdown" onclick="Dropdown.open(this);" class="dropdown">';
+		HTML+=preHTML+listHTML;
+		HTML+='</a>';
+		HTML+='<div class="details-button-pane"><a href="javascript:Fav.Mass.new()" class="button widebutton">go</a></div>';
+		HTML+='<br/><br/>';
+		
+		//Rename list
+		var preHTML='Select a list to rename:<br/>';
+		preHTML+='<a id="listRename" onclick="Dropdown.open(this);" class="dropdown">';
+		HTML+=preHTML+listHTML;
+		HTML+='</a>';
+		HTML+='New name:<br/><input id="favRenameInput" type="text" value="" class="searchinput"/><br/>';
+		HTML+='<div class="details-button-pane"><a href="javascript:Fav.rename()" class="button widebutton">save</a></div>';
+		HTML+='<br/><br/>';
+		
+		//Append
+		document.getElementById('favManagementExtra').innerHTML=HTML;
+	}
 	fixTextInput();
 	var createButton = document.getElementById('favCreateButton');
-	createButton.href = 'javascript:Fav.createList(\''+id+'\',\''+name+'\')';
+	if (args[1] != 'main') {
+		createButton.href = 'javascript:Fav.createList(\''+id+'\',\''+name+'\')';
+	}
+	else {
+		createButton.href = 'javascript:Fav.createEmptyList()';
+	}
 }
 
 function makeSearchPage() {

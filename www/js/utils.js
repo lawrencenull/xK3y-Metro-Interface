@@ -13,6 +13,7 @@ var pages = {
 	'folderstructure-page'		: function(args){makeFolderStructurePage(args)},
 	'favorites-page' 			: function(args){makeFavoritesPage(args)},
 	'favoritesmanagement-page'	: function(args){makeFavManagementPage(args)},
+	'massAdding-page'			: function(){},
 	'search-page' 				: function(){makeSearchPage()},
 	'about-page' 				: function(){makeAboutPage()},
 	'overlay' 					: function(args){makeOverlay(args)},
@@ -367,13 +368,35 @@ var Fav = {
 		Fav.addToList(id, name, listName);
 		makeFavManagementPage(['page', id+'&'+name]);
 	},
-	'removeList': function (listName) {
+	'createEmptyList': function (listName) {
+		if (!listName) {
+			listName = document.getElementById('favCreateInput').value;
+		}
 		var favLists = Fav.lists();
+		if ($.isEmptyObject(favLists)) {
+			favLists={};
+		}
+		else if (listName in favLists) {
+			MessageBox.Show('Error', 'List "'+unescape(listName)+'" already exists!');
+			return;
+		}
+		favLists[listName]=[];
+		Fav.save(favLists, true);
+		makeFavManagementPage(['page', 'main']);
+	},
+	'removeList': function (listName, management) {
+		var favLists = Fav.lists();
+		if (!listName) {
+			listName = unescape($('#listRemoveDropdown').children('.dropdown-active').attr('id'));
+		}
 		delete favLists[listName];
 		Pages.removePage(listName+'-list');
 		Fav.save(favLists, true);
+		if (management) {
+			makeFavManagementPage(['page', 'main']);
+		}
 	},
-	'addToList': function (id, name, listName) {
+	'addToList': function (id, name, listName, mass) {
 		var flag=false;
 		if (!listName) {
 			listName = unescape($('#favAddDropdown').children('.dropdown-active').attr('id'));
@@ -391,6 +414,12 @@ var Fav = {
 		else {
 			return false;
 		}
+		if (mass) {
+			//Save to local object
+			Fav.save(favLists, false);
+			return;
+		}
+		//Save to server
 		Fav.save(favLists, true);
 		if (flag) {
 			makeFavManagementPage(['page', id+'&'+name]);
@@ -398,7 +427,7 @@ var Fav = {
 		}
 		return true;
 	},
-	'removeFromList': function (id, name, listName) {
+	'removeFromList': function (id, name, listName, mass) {
 		var flag=false;
 		if (!listName) {
 			listName = unescape($('#favRemoveDropdown').children('.dropdown-active').attr('id'));
@@ -407,14 +436,116 @@ var Fav = {
 		var favLists = Fav.lists();
 		var gameList = favLists[listName];
 		var index = Fav.findIndex(gameList, id);
+		if (index == -1 ) {
+			return;
+		}
 		gameList.splice(index,1);
 		if (gameList.length==0) {
-			Fav.removeList(listName);
+			//Fav.removeList(listName);
 		}
+		if (mass) {
+			//Save to local object
+			Fav.save(favLists, false);
+			return;
+		}
+		//Save to server
 		Fav.save(favLists, true);
 		if (flag) {
 			makeFavManagementPage(['page', id+'&'+name]);
 		}
+	},
+	'Mass': {
+		'new': function (listName) {
+			if (!listName) {
+				listName = unescape($('#massAddDropdown').children('.dropdown-active').attr('id'));
+			}
+			if (!Fav.Mass.ISO.isBuild) {
+				Fav.Mass.ISO.build(listName);
+			}
+			else {
+				Fav.Mass.init(listName);
+			}
+			showPage('massAdding-page');
+		},
+		'init': function (listName) {
+			var favLists = Fav.lists();
+			var gameList = favLists[listName];
+			var checkBoxes = $('#massaddingcontainer').find('input[type="checkbox"]');
+			var l = checkBoxes.length;
+			for (var i = 0; i<l; i++) {
+				var cur = checkBoxes[i];
+				var id = cur.name;
+				var index = Fav.findIndex(gameList, id, true);
+				if (index != -1) {
+					cur.checked = true;
+				}
+			}
+			$('#massSaveButton')[0].name = escape(listName);
+		},
+		'save': function () {
+			var listName = unescape($('#massSaveButton')[0].name);
+			var checkBoxes = $('#massaddingcontainer').find('input[type="checkbox"]');
+			var toSave = checkBoxes.filter(':checked');
+			var toRemove = checkBoxes.not(':checked');
+			var l = toSave.length;
+			var k = toRemove.length;
+			for (var i=0; i<l; i++) {
+				var id = toSave[i].name;
+				var name = unescape(toSave[i].id);
+				Fav.addToList(id, name, listName, true);
+			}
+			for (var i=0; i<k; i++) {
+				var id = toRemove[i].name;
+				var name = unescape(toRemove[i].id);
+				Fav.removeFromList(id, name, listName, true);
+			}
+			var favLists = Fav.lists();
+			Fav.save(favLists, true);
+			showPage('favoritesmanagement-page?main');
+		},
+		'ISO': {
+			'build': function (listName) {
+				//Copy the ISOList! We don't want to mess up the other menus
+				var ISOlist = data.ISOlist.slice();
+				//Make it alpabetically listed
+				ISOlist.sort(function(x,y) { 
+					var a = String(x.name).toUpperCase(); 
+					var b = String(y.name).toUpperCase(); 
+					if (a > b) 
+						return 1 
+					if (a < b) 
+						return -1 
+					return 0; 
+				});
+				var iso, id, index;
+				var l = ISOlist.length;
+				var HTML = '';
+				for (var i=0;i<l;i++) {
+					iso = ISOlist[i].name;
+					id = ISOlist[i].id;
+					if (index != -1) {
+						check='checked="checked"';
+					}
+					HTML+='<input type="checkbox" name="'+id+'" id="'+escape(iso)+'"/><label for="'+escape(iso)+'" id="'+id+'">'+iso+'</label><br/>';
+				}
+				HTML+='<div class="details-button-pane"><a id="massSaveButton" href="javascript:Fav.Mass.save()" name="'+escape(listName)+'" class="button widebutton">done</a><br/><br/></div>';
+				document.getElementById('massaddingcontainer').innerHTML += HTML;
+				Fav.Mass.ISO.isBuild = true;
+				Fav.Mass.init(listName);
+			},
+			'isBuild': false
+		}
+	},
+	'rename': function (oldName, newName) {
+		if (!oldName) {
+			oldName = unescape($('#listRename').children('.dropdown-active').attr('id'));
+			newName = document.getElementById('favRenameInput').value;
+		}
+		var favLists = Fav.lists();
+		favLists[newName] = favLists[oldName];
+		delete favLists[oldName];
+		Fav.save(favLists, true);
+		showPage('favoritesmanagement-page?main');
 	},
 	'findList': function (id) {
 		var savedFavLists = Fav.lists();
