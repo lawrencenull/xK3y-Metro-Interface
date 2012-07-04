@@ -1,4 +1,4 @@
-var version='0.09';
+var version='0.20';
 //Some global variables needed
 var data;
 var saveData;
@@ -177,10 +177,9 @@ function makeListPage(args) {
 			}
 			HTML+='<a href="#details-page?'+id+'&'+escape(iso)+'"><div class="list-item game '+id+'"><div class="list-item-icon accent" style="background-image:url(\''+cover+'\'); background-size: 72px;"></div><span class="list-item-text'+activeClass+'">'+iso+'</span></div></a>';
 		}
-		HTML+='<a href="javascript:scrollUp()"><div class="list-item game"><div class="list-item-icon accent" style="background-image:url(\'img/up.png\'); background-size: 72px;"></div><span class="list-item-text">Scroll up</span></div></a><br/>';
+		HTML+='<a href="javascript:scrollUp()"><div class="list-item game"><div class="list-item-icon accent" style="background-image:url(\'img/up.png\'); background-size: 72px;"></div><span class="list-item-text string-scrollup">'+Translate.strings["string-scrollup"]+'</span></div></a><br/>';
 		//Native approach should be faster
 		document.getElementById('listcontainer').innerHTML=HTML;
-		$(".easydate").easydate();
 		listsMade=true;
 		//Trigger accentChange to make sure the list gets the correct colors
 		accentChange(saveData['Settings'].accent);
@@ -190,6 +189,136 @@ function makeListPage(args) {
 		}
 		return;
 	}
+}
+
+var Recent = {
+	'makePage' : function () {
+		if (!Recent.updated) {
+			Recent.get();
+			return;
+		}
+		var listName = 'Recently Added';
+		var favLists = Fav.lists();
+		var gameList = favLists[listName];
+		var l = gameList.length;
+		var HTML = '';
+		var id, name, cover;
+		for (var i=0; i<l; i++) {
+			var name = gameList[i].name;
+			var id = gameList[i].id;
+			var cover = 'covers/'+id+'.jpg';
+			HTML+='<a href="#details-page?'+id+'&'+escape(name)+'"><div class="list-item game '+id+'"><div class="list-item-icon accent" style="background-image:url(\''+cover+'\'); background-size: 72px;"></div><span class="list-item-text">'+name+'</span></div></a>';
+		}
+		document.getElementById('recentaddcontainer').innerHTML=HTML;
+		//Trigger accentChange to make sure the list gets the correct colors
+		accentChange(saveData['Settings'].accent);
+	},
+	'get' : function () {
+		//Copy the ISOList! We don't want to mess up the other menus
+		var ISOlist = data.ISOlist.slice();
+		//Make it alpabetically listed
+		ISOlist.sort(function(x,y) { 
+			var a = String(x.name).toUpperCase(); 
+			var b = String(y.name).toUpperCase(); 
+			if (a > b) 
+				return 1 
+			if (a < b) 
+				return -1 
+			return 0; 
+		});
+		var l=ISOlist.length;
+		var listName = 'Recently Added';
+		var favLists = Fav.lists();
+		if ($.isEmptyObject(favLists)) {
+			favLists={};
+		}
+		var listExists = !$.isEmptyObject(favLists[listName]);
+		var store, flag, name, id, favLists;
+		for (var i=0;i<l;i++) {
+			id = ISOlist[i].id;
+			flag = false;
+			store = saveData[id];
+			if ($.isEmptyObject(store)) {
+				flag = true;
+				store = {};
+			}
+			else {
+				if (!store.known) {
+					flag = true
+				}
+			}
+			if (flag) {
+				store.known = true;
+				if (listExists) {
+					Recent.clear();
+					listExists=false;
+				}
+				name = ISOlist[i].name;
+				if ($.isEmptyObject(favLists)) {
+					favLists={};
+				}
+				if (!(listName in favLists)) {
+					Fav.createList(id, name, listName);
+					favLists = Fav.lists();
+				}
+				else {
+					Fav.addToList(id, name, listName, true);
+				}
+				saveData[id] = store;
+			}
+		}
+		Settings.save();
+		Recent.updated=true;
+		Recent.makePage();
+	},
+	'clear' : function () {
+		var favLists = Fav.lists();
+		var listName = 'Recently Added';
+		Fav.removeList(listName);
+	},
+	'updated' : false
+}
+
+function makeRecentlyAdded() {
+	//Copy the ISOList! We don't want to mess up the other menus
+	var ISOlist = data.ISOlist.slice();
+	//Make it alpabetically listed
+	ISOlist.sort(function(x,y) { 
+		var a = String(x.name).toUpperCase(); 
+		var b = String(y.name).toUpperCase(); 
+		if (a > b) 
+			return 1 
+		if (a < b) 
+			return -1 
+		return 0; 
+	});
+	var iso, id, cover, flag, store;
+	var HTML='';
+	var l=ISOlist.length;
+	for (var i=0;i<l;i++) {
+		iso = ISOlist[i].name;
+		id = ISOlist[i].id;
+		cover = ISOlist[i].image;
+		store = saveData[id];
+		flag = false;
+		if ($.isEmptyObject(store)) {
+			flag = true;
+		}
+		else {
+			if (!store.known) {
+				flag = true
+			}
+		}
+		//debug cover
+		//cover = 'img/test.jpg';
+		HTML+='<a href="#details-page?'+id+'&'+escape(iso)+'"><div class="list-item game '+id+'"><div class="list-item-icon accent" style="background-image:url(\''+cover+'\'); background-size: 72px;"></div><span class="list-item-text">'+iso+'</span></div></a>';
+	}
+	HTML+='<a href="javascript:scrollUp()"><div class="list-item game"><div class="list-item-icon accent" style="background-image:url(\'img/up.png\'); background-size: 72px;"></div><span class="list-item-text string-scrollup">'+Translate.strings["string-scrollup"]+'</span></div></a><br/>';
+	//Native approach should be faster
+	document.getElementById('listcontainer').innerHTML=HTML;
+	//Trigger accentChange to make sure the list gets the correct colors
+	accentChange(saveData['Settings'].accent);
+	return;
 }
 
 function makeFolderStructurePage(args) {
@@ -271,7 +400,7 @@ function makeFavoritesPage(args) {
 	if ($.isEmptyObject(favLists)) {
 		tileHTML+='<a href="javascript:history.back()">';
 		tileHTML+='<div class="tile accent favlist '+color+'">';
-		tileHTML+='<span class="tile-title">No lists</span>';
+		tileHTML+='<span class="tile-title string-nolists">'+Translate.strings["string-nolists"]+'</span>';
 		tileHTML+='</div></a>';
 		document.getElementById('favoritescontainer').innerHTML=tileHTML;
 	}
@@ -304,6 +433,7 @@ function makeFavoritesPage(args) {
 				//cover = 'img/test.jpg';
 				HTML+='<a href="'+href+'"><div class="tile accent animate '+color+'" style="background-image:url(\''+cover+'\'); background-size: 173px;"><span class="tile-title">'+name+'</span></div></a>';
 			}
+			$(document.getElementById(escape(listName)+'-list')).children('a').remove();
 			document.getElementById(escape(listName)+'-list').innerHTML+=HTML;
 			//Tile HTML
 			tileHTML+='<a href="#favorites-page?'+escape(listName)+'-list">';
@@ -314,7 +444,7 @@ function makeFavoritesPage(args) {
 	}
 	tileHTML+='<a href="#favoritesmanagement-page?main">';
 	tileHTML+='<div class="tile accent config '+color+'">';
-	tileHTML+='<span class="tile-title">Management</span>';
+	tileHTML+='<span class="tile-title title-favmanagement">'+Translate.strings["title-favmanagement"]+'</span>';
 	tileHTML+='</div></a>';
 	document.getElementById('favoritescontainer').innerHTML=tileHTML;
 }
@@ -335,7 +465,8 @@ function makeFavManagementPage(args) {
 			favListNames.push(i);
 		}
 		var first = true;
-		for (var i=0;i<favListNames.length;i++) {
+		var l = favListNames.length;
+		for (var i=0;i<l;i++) {
 			var flag=false;
 			var extraclass=' invis';
 			//Find all lists this game is in
@@ -358,16 +489,16 @@ function makeFavManagementPage(args) {
 			first = false;
 		}
 		if (HTML.length!=0) {
-			var preHTML='Select a list to add this game to:<br/>';
+			var preHTML=Translate.strings["string-addtolist"]+'<br/>';
 			preHTML+='<a id="favAddDropdown" onclick="Dropdown.open(this);" class="dropdown">';
 			HTML=preHTML+HTML;
 			HTML+='</a>';
-			HTML+='<div class="details-button-pane"><a href="javascript:Fav.addToList(\''+id+'\',\''+name+'\')" class="button widebutton">done</a></div>';
+			HTML+='<div class="details-button-pane"><a href="javascript:Fav.addToList(\''+id+'\',\''+name+'\')" class="button widebutton">'+Translate.strings["string-done"]+'</a></div>';
 			HTML+='<br/><br/>';
 		}
 		var removeLists = Fav.findList(id);
 		if (removeLists.length!=0) {
-			HTML+='Select a list to remove this game from:<br/>';
+			HTML+=Translate.strings["string-removefromlist"]+'<br/>';
 			HTML+='<a id="favRemoveDropdown" onclick="Dropdown.open(this);" class="dropdown">';
 			for (var i=0;i<removeLists.length;i++) {
 				var extraclass=' invis';
@@ -379,7 +510,7 @@ function makeFavManagementPage(args) {
 				HTML+='</div>';
 			}
 			HTML+='</a>';
-			HTML+='<div class="details-button-pane"><a href="javascript:Fav.removeFromList(\''+id+'\', \''+name+'\')" class="button widebutton">done</a></div>';
+			HTML+='<div class="details-button-pane"><a href="javascript:Fav.removeFromList(\''+id+'\', \''+name+'\')" class="button widebutton">'+Translate.strings["string-done"]+'</a></div>';
 			HTML+='<br/><br/>';
 		}
 		document.getElementById('favManagementExtra').innerHTML=HTML;
@@ -402,28 +533,28 @@ function makeFavManagementPage(args) {
 			first = false;
 		}
 		
-		var preHTML='Select a list to remove:<br/>';
+		var preHTML=Translate.strings["string-removelist"]+'<br/>';
 		preHTML+='<a id="listRemoveDropdown" onclick="Dropdown.open(this);" class="dropdown">';
 		HTML=preHTML+listHTML;
 		HTML+='</a>';
-		HTML+='<div class="details-button-pane"><a href="javascript:Fav.removeList(undefined,true)" class="button widebutton">done</a></div>';
+		HTML+='<div class="details-button-pane"><a href="javascript:Fav.removeList(undefined,true)" class="button widebutton">'+Translate.strings["string-done"]+'</a></div>';
 		HTML+='<br/><br/>';
 		
 		//Mass game adding
-		var preHTML='Select a list to mass add to:<br/>';
+		var preHTML=Translate.strings["string-massadd"]+'<br/>';
 		preHTML+='<a id="massAddDropdown" onclick="Dropdown.open(this);" class="dropdown">';
 		HTML+=preHTML+listHTML;
 		HTML+='</a>';
-		HTML+='<div class="details-button-pane"><a href="javascript:Fav.Mass.new()" class="button widebutton">go</a></div>';
+		HTML+='<div class="details-button-pane"><a href="javascript:Fav.Mass.new()" class="button widebutton">'+Translate.strings["string-done"]+'</a></div>';
 		HTML+='<br/><br/>';
 		
 		//Rename list
-		var preHTML='Select a list to rename:<br/>';
+		var preHTML=Translate.strings["string-rename"]+'<br/>';
 		preHTML+='<a id="listRename" onclick="Dropdown.open(this);" class="dropdown">';
 		HTML+=preHTML+listHTML;
 		HTML+='</a>';
 		HTML+='New name:<br/><input id="favRenameInput" type="text" value="" class="searchinput"/><br/>';
-		HTML+='<div class="details-button-pane"><a href="javascript:Fav.rename()" class="button widebutton">save</a></div>';
+		HTML+='<div class="details-button-pane"><a href="javascript:Fav.rename()" class="button widebutton">'+Translate.strings["string-done"]+'</a></div>';
 		HTML+='<br/><br/>';
 		
 		//Append
@@ -473,7 +604,7 @@ function prepDetails(id, name) {
 	document.getElementById('details-page').innerHTML='';
 	var title, summary, HTML;
 	var pinButtonAction = 'Pin.add(\''+id+'\', \''+name+'\');';
-	var pinButtonText = 'Pin to main';
+	var pinButtonText = Translate.strings["string-pinmain"];
 	//var favButtonAction = '';
 	//var favButtonText = 'Add to favorites';
 	var favLists = Fav.lists();
@@ -483,7 +614,7 @@ function prepDetails(id, name) {
 			var index = Fav.findIndex(pinned, id, true);
 			if (index != -1) {
 				pinButtonAction = 'Pin.remove(\''+id+'\', \''+name+'\');';
-				pinButtonText = 'Remove from main';
+				pinButtonText = Translate.strings["string-removepin"];
 			}
 		}
 		/*var favTest = Fav.findList(id);
@@ -497,7 +628,7 @@ function prepDetails(id, name) {
 		dataType: "xml",
 		cache: false,
 		success: function(xml) {
-			if ($(xml).find('title').text()=="No Title") {
+			if ($(xml).find('title').text()==Translate.strings["string-notitle"]) {
 				title = unescape(name);
 			}
 			else {
@@ -517,24 +648,24 @@ function prepDetails(id, name) {
 			HTML='<div class="spacer"></div><div class="spacer"></div><span class="page-title">'+title+'</span><br/><br/><div class="page-wrapper">';
 			HTML+='<img class="details-cover" src="covers/'+id+'.jpg"/>';
 			HTML+='<span class="about-items">'+infoitems+'</span>'+summary+'<div class="details-button-pane">';
-			HTML+='<a class="button" href="javascript:launchGame(\''+id+'\');">Play</a>';
-			HTML+='<a class="button" href="javascript:history.back();">Close</a>';
+			HTML+='<a class="button" href="javascript:launchGame(\''+id+'\');">'+Translate.strings["string-play"]+'</a>';
+			HTML+='<a class="button" href="javascript:history.back();">'+Translate.strings["string-close"]+'</a>';
 			HTML+='<a class="button" href="javascript:'+pinButtonAction+'">'+pinButtonText+'</a>';
-			HTML+='<a class="button" href="#favoritesmanagement-page?'+id+'&'+name+'">Manage favorites</a>';
+			HTML+='<a class="button" href="#favoritesmanagement-page?'+id+'&'+name+'">'+Translate.strings["string-managefav"]+'</a>';
 			HTML+='</div></div>';
 			document.getElementById('details-page').innerHTML=HTML;
 		},
 		error: function() {
 			title=unescape(name);
 			var infoitems='';
-			summary="Betrayed by the ruling families of Italy, a young man embarks upon an epic quest for vengeance. To eradicate corruption and restore his family's honor, he will study the secrets of an ancient Codex, written by Altaïr. To his allies, he will become a force for change - fighting for freedom and justice. To his enemies, he will become a dark knight - dedicated to the destruction of the tyrants abusing the people of Italy. His name is Ezio Auditore da Firenze. He is an Assassin."
+			summary="&eacute; Betrayed by the ruling families of Italy, a young man embarks upon an epic quest for vengeance. To eradicate corruption and restore his family's honor, he will study the secrets of an ancient Codex, written by Altaïr. To his allies, he will become a force for change - fighting for freedom and justice. To his enemies, he will become a dark knight - dedicated to the destruction of the tyrants abusing the people of Italy. His name is Ezio Auditore da Firenze. He is an Assassin."
 			HTML='<div class="spacer"></div><div class="spacer"></div><span class="page-title">'+title+'</span><br/><br/><div class="page-wrapper">';
 			HTML+='<img class="details-cover" src="img/test.jpg"/>';
 			HTML+='<span class="about-items">'+infoitems+'</span>'+summary+'<div class="details-button-pane">';
-			HTML+='<a class="button" href="javascript:launchGame(\''+id+'\');">Play</a>';
-			HTML+='<a class="button" href="javascript:history.back();">Close</a>';
+			HTML+='<a class="button" href="javascript:launchGame(\''+id+'\');">'+Translate.strings["string-play"]+'</a>';
+			HTML+='<a class="button" href="javascript:history.back();">'+Translate.strings["string-close"]+'</a>';
 			HTML+='<a class="button" href="javascript:'+pinButtonAction+'">'+pinButtonText+'</a>';
-			HTML+='<a class="button" href="#favoritesmanagement-page?'+id+'&'+name+'">Manage favorites</a>';
+			HTML+='<a class="button" href="#favoritesmanagement-page?'+id+'&'+name+'">'+Translate.strings["string-managefav"]+'</a>';
 			HTML+='</div></div>';
 			document.getElementById('details-page').innerHTML=HTML;
 		}
@@ -557,12 +688,17 @@ function launchGame(id) {
 				updateActive(id);
             }
 			else if (tray == 1 && guistate == 1) {
-				MessageBox.Show('Loading Notification', 'Please open your DVD tray.');
+				var title = Translate.strings["string-loadingtitle"];
+				var message = Translate.string["string-opentray"];
+				MessageBox.Show(title, message);
 				$.get(url);
 				updateActive(id);
 			}
 			else if (tray == 1 && guistate == 2) {
-				MessageBox.Show('Loading Notification', 'A game appears to be already loaded, please open your DVD tray and click "Reload"', '<a class="button" href="javascript:MessageBox.Close();launchGame(\''+id+'\')">Reload</a>');
+				var title = Translate.strings["string-loadingtitle"];
+				var message = Translate.string["string-alreadyloaded"];
+				var reload = Translate.string["string-reload"];
+				MessageBox.Show(title, message, '<a class="button" href="javascript:MessageBox.Close();launchGame(\''+id+'\')">'+reload+'</a>');
 			}
 		}
 	});

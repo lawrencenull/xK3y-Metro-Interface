@@ -26,49 +26,54 @@
 			<br/>
 			<div class="page active" id="main-screen">
 				<div class="spacer"></div><div class="spacer"></div>
-				<span class="page-title">main</span><br/><br/>
+				<span class="page-title title-main">main</span><br/><br/>
 				<!-- Cover Wall Tile -->
 				<a href="#coverwall-page">
 					<div class="tile wall accent">
-						<span class="tile-title">cover wall</span>
+						<span class="tile-title title-coverwall">coverwall</span>
 					</div>
 				</a>
 				<!-- List Tile -->
 				<a href="#list-page">
 					<div class="tile lists accent">
-						<span class="tile-title">lists</span>
+						<span class="tile-title title-lists">lists</span>
 					</div>
 				</a>
 				<!-- Folder Structure Tile -->
 				<a href="#folderstructure-page">
 					<div class="tile folder accent">
-						<span class="tile-title">folder structure</span>
+						<span class="tile-title title-folderstructure">folder structure</span>
 					</div>
 				</a>
 				<!-- Favorites Tile -->
 				<a href="#favorites-page">
 					<div class="tile favs accent">
-						<span class="tile-title">favorites</span>
+						<span class="tile-title title-favorites">favorites</span>
 					</div>
 				</a>
-				
+				<!-- Recently Added Tile -->
+				<a href="#recentadd-page">
+					<div class="tile recentadd accent">
+						<span class="tile-title title-recentadd">recently added</span>
+					</div>
+				</a>
 				<!-- Search Tile -->
 				<a href="#search-page">
 					<div class="tile search accent">
-						<span class="tile-title">search</span>
+						<span class="tile-title title-search">search</span>
 					</div>
 				</a>
 				<!-- Config Tile -->
 				<a href="#config-page">
 					<div class="tile config accent">
-						<span class="tile-title">config</span>
+						<span class="tile-title title-config">config</span>
 					</div>
 				</a>
 				
 				<!-- About Tile -->
 				<a href="#about-page">
 					<div class="tile about accent">
-						<span class="tile-title">about</span>
+						<span class="tile-title title-about">about</span>
 					</div>
 				</a>
 				<!--<a href="#favoritesmanagement-page?8f21c54b0ea58abf9f4d446e6abe3ba38b56fa11&Brutal%20Legend">
@@ -100,31 +105,37 @@
 			<!-- Cover Wall Page Placeholder -->
 			<div id="coverwall-page" class="page">
 				<div class="spacer"></div><div class="spacer"></div>
-				<span class="page-title">cover wall</span><br/>
+				<span class="page-title title-coverwall">cover wall</span><br/>
 				<div class="page-wrapper" id="coverwallcontainer"></div>
 			</div>
 			<!-- List Page Placeholder -->
 			<div id="list-page" class="page">
 				<div class="spacer"></div><div class="spacer"></div>
-				<span class="page-title">list</span><br/><br/>
+				<span class="page-title title-lists">list</span><br/><br/>
 				<div class="page-wrapper" id="listcontainer"></div>
 			</div>
 			<!-- Folder Structure Page Placeholder -->
 			<div id="folderstructure-page" class="page">
 				<div class="spacer"></div><div class="spacer"></div>
-				<span class="page-title">folder structure</span><br/><br/>
+				<span class="page-title title-folderstructure">folder structure</span><br/><br/>
 				<div class="page-wrapper" id="folderstructurecontainer"></div>
 			</div>
 			<!-- Favorites Page Placeholder -->
 			<div id="favorites-page" class="page">
 				<div class="spacer"></div><div class="spacer"></div>
-				<span class="page-title">favorites</span><br/><br/>
+				<span class="page-title title-favorites">favorites</span><br/><br/>
 				<div class="page-wrapper" id="favoritescontainer"></div>
+			</div>
+			<!-- Recently Added Page Placeholder -->
+			<div id="recentadd-page" class="page">
+				<div class="spacer"></div><div class="spacer"></div>
+				<span class="page-title title-recentadd">recently added</span><br/><br/>
+				<div class="page-wrapper" id="recentaddcontainer"></div>
 			</div>
 			<!-- Search Page Placeholder -->
 			<div id="search-page" class="page">
 				<div class="spacer"></div><div class="spacer"></div>
-				<span class="page-title">search</span><br/><br/>
+				<span class="page-title title-search">search</span><br/><br/>
 				<div class="page-wrapper">
 					<input name="searchInput" type="text" value="Search..." class="searchinput" onkeyup="search(this.value)" onclick="this.select()"/>
 					<br/><br/>
@@ -134,13 +145,20 @@
 			<!-- Config Page Markup -->
 			<div id="config-page" class="page">
 				<div class="spacer"></div><div class="spacer"></div>
-				<span class="page-title">config</span><br/><br/>
+				<span class="page-title title-config">config</span><br/><br/>
 				<div class="page-wrapper">
-					Change the accent color to match your mood.<br/><br/>
-					<span style="font-size:14pt;">Accent color</span>
+					<span class="string-accent">Change the accent color to match your mood.</span><br/><br/>
+					<span style="font-size:14pt;" class="accent-title">Accent color</span>
 					<a href="#overlay?grey" onclick="accentPopup(this)" id="accentSelect" class="dropdown">
 						<div class="accentIconSmall accent"></div>
 						<span class="dropdownText">blue</span>
+					</a><br/><br/>
+					<span class="string-language">Select your preferred language.</span><br/><br/>
+					<span style="font-size:14pt;" class="language-title">Interface Language</span>
+					<a onclick="Dropdown.open(this)" id="languageSelect" class="dropdown" onselect="Translate.select">
+						<div class="dropdown-item dropdown-active">
+							<span class="dropdownText">Loading...</span>
+						</div>
 					</a><br/><br/><br/>
 					<!--<br/><br/><br/><br/>
 					<span style="font-size:14pt;">Background</span>
@@ -157,17 +175,17 @@
 			<!-- About Page Markup -->
 			<div id="about-page" class="page">
 				<div class="spacer"></div><div class="spacer"></div>
-				<span class="page-title">about</span><br/><br/>
+				<span class="page-title title-about">about</span><br/><br/>
 				<div class="page-wrapper">
-					<span class="about-title">xk3y information</span></br>
+					<span class="about-title xkeyinfo">xk3y information</span></br>
 					<div id="xk3y-about" class="about-items"></div>
 					<br/>
-					<span class="about-title">other information</span></br>
+					<span class="about-title otherinfo">other information</span></br>
 					<div class="about-items">
 						Made by Mr_Waffle<br/>
 						Version: <span id="version"></span><br/>
 						Source: <a href="https://github.com/MrWaffle/xK3y-Metro-Interface" target="_blank">Github</a><br/>
-						<a href="javascript:Settings.reset()">Delete all saved data</a>
+						<a href="javascript:Settings.reset()" class="string-delete">Delete all saved data</a>
 					</div>
 					<br/>
 				</div>
@@ -175,16 +193,16 @@
 			<!-- Favorite Management Page Markup -->
 			<div id="favoritesmanagement-page" class="page">
 				<div class="spacer"></div><div class="spacer"></div>
-				<span class="page-title">fav management</span><br/><br/>
+				<span class="page-title title-favmanagement">fav management</span><br/><br/>
 				<div class="page-wrapper" id="favoritemanagementcontainer">
-					Create a new list:<br/>
+					<span class="string-createlist">Create a new list:</span><br/>
 					<input id="favCreateInput" type="text" value="List name..." class="searchinput"/><br/>
 					<div class="details-button-pane">
-						<a id="favCreateButton" href="" class="button widebutton">done</a>
+						<a id="favCreateButton" href="" class="button widebutton string-done">done</a>
 						<br/><br/>
 					</div>
 					<div id="favManagementExtra"></div>
-					When you're done, you can go back by clicking "close"
+					<span class="string-done-close">When you're done, you can go back by clicking "close"
 					<div class="details-button-pane">
 						<a href="javascript:history.back()" class="button widebutton">close</a>
 						<br/><br/>
@@ -194,7 +212,7 @@
 			<!-- Favorite Management Page Markup -->
 			<div id="massAdding-page" class="page">
 				<div class="spacer"></div><div class="spacer"></div>
-				<span class="page-title">Mass adding</span><br/><br/>
+				<span class="page-title title-massadding">Mass adding</span><br/><br/>
 				<div class="page-wrapper" id="massaddingcontainer"></div>
 			</div>
 			<!-- Game Details Page Placeholder -->
