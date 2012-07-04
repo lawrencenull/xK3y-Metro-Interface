@@ -268,7 +268,7 @@ var Recent = {
 			}
 		}
 		Settings.save();
-		Recent.updated=true;
+		Recent.updated = true;
 		Recent.makePage();
 	},
 	'clear' : function () {

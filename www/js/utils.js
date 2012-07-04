@@ -763,7 +763,7 @@ var Translate = {
 				}
 			});
 		}
-		saveData['Settings'].language = lang;
+		saveData['Settings'].language =lang;
 		Settings.save();
 	},
 	'translate' : function (translation) {
