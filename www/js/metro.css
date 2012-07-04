@@ -77,7 +77,7 @@
 	padding: 12px 0px 18px 18px;
 }
 
-#coverwallcontainer, #folderstructurecontainer, #listcontainer, #favoritescontainer {
+#coverwallcontainer, #folderstructurecontainer, #listcontainer, #favoritescontainer, #recentaddcontainer {
 	margin-left:-6px
 }
 
@@ -268,6 +268,26 @@ a.widebutton {
 	color:#000000;
 }
 
+.inputDisabled {
+	background-color:#BEBEBE;
+}
+
+.checkbox {
+	width:32px;
+	height:32px;
+	background-color:#BEBEBE;
+	position:relative;
+	display:inline-block;
+	margin-top:12px;
+	margin-right:6px;
+	top:10px;
+}
+
+.checkboxChecked {
+	background-image: url('../img/check.png');
+	background-size: 32px 32px;
+}
+
 .dropdown {
 	margin-left:0px;
 	margin-right:24px;
@@ -344,6 +364,11 @@ a.widebutton {
 
 .favlist {
 	background-image:url('../img/favlist.png');
+	background-size: 173px 173px;
+}
+
+.recentadd {
+	background-image:url('../img/recentadd.png');
 	background-size: 173px 173px;
 }
 
@@ -544,10 +569,10 @@ html {
 .magenta-border {
 	border-color:#D80073!important;
 }
-
+/*
 @media all and (max-device-width: 320px) {
 	.tile {
 		width: 115px;
 		height: 115px;
 	}
-}
+}*/

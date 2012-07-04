@@ -13,17 +13,20 @@ var pages = {
 	'folderstructure-page'		: function(args){makeFolderStructurePage(args)},
 	'favorites-page' 			: function(args){makeFavoritesPage(args)},
 	'favoritesmanagement-page'	: function(args){makeFavManagementPage(args)},
+	'massAdding-page'			: function(){},
 	'search-page' 				: function(){makeSearchPage()},
 	'about-page' 				: function(){makeAboutPage()},
 	'overlay' 					: function(args){makeOverlay(args)},
 	'details-page' 				: function(args){prepDetails(args)},
 	'main-screen'				: function(){},
-	'config-page'				: function(){}
+	'config-page'				: function(){Translate.load(Translate.makeList)},
+	'recentadd-page'			: function(){Recent.makePage()}
 };
 //Default settings
 var defaultSettings = {
 	'accent' : 'blue',
-	'metro' : true
+	'metro' : true,
+	'language' : 'English'
 }
 
 $(window).resize(function() { 
@@ -212,12 +215,67 @@ var Dropdown = {
 		if (dropDownFlag) {
 			var item = $(item);
 			var dropDown = $(element);
+			if (dropDown.attr('onselect')) {
+				var func = dropDown.attr('onselect').split(".");
+				window[func[0]][func[1]](item.children('span').html());
+			}
 			item.addClass('dropdown-active').attr('onclick','');
 			dropDown.children('.dropdown-item:not(".dropdown-active")').slideUp();
 			dropDown.attr('onclick','Dropdown.open(this)');
 			//FF bug, delay being able to open the dropdown by 1 millisecond
 			setTimeout('dropDownFlag=false',1);
 		}
+	}
+}
+
+var CheckBox = {
+	'notify': function (elem) {
+		var checked = elem.checked;
+		var name = elem.attributes.name.value;
+		var customBox = document.getElementsByName(name).item(0);
+		if (checked) {
+			CheckBox.checkCustom(customBox);
+		}
+		else {
+			CheckBox.uncheckCustom(customBox);
+		}
+	},
+	'onclick': function (elem) {
+		var checked = $(elem).hasClass('checkboxChecked');
+		var name = elem.attributes.name.value;
+		var nativeBox = document.getElementsByName(name).item(1);
+		if (!checked) {
+			CheckBox.checkCustom(elem);
+			CheckBox.checkNative(nativeBox);
+		}
+		else {
+			CheckBox.uncheckCustom(elem);
+			CheckBox.uncheckNative(nativeBox);
+		}
+	},
+	'check': function (elem) {
+		var name = elem.attributes.name.value;
+		var customBox = document.getElementsByName(name).item(0);
+		CheckBox.checkNative(elem);
+		CheckBox.checkCustom(customBox);
+	},
+	'uncheck': function (elem) {
+		var name = elem.attributes.name.value;
+		var customBox = document.getElementsByName(name).item(0);
+		CheckBox.uncheckNative(elem);
+		CheckBox.uncheckCustom(customBox);
+	},
+	'checkNative': function (elem) {
+		elem.checked = true;
+	},
+	'uncheckNative': function (elem) {
+		elem.checked = false;
+	},
+	'checkCustom': function (elem) {
+		$(elem).addClass('checkboxChecked');
+	},
+	'uncheckCustom': function (elem) {
+		$(elem).removeClass('checkboxChecked');
 	}
 }
 
@@ -243,50 +301,6 @@ var MessageBox = {
 	}, 
 	'Close': function () {
 		$('#MessageBox').removeClass('active');
-	}
-}
-
-var Settings = {
-	'init': function () {
-		var settings = saveData['Settings'];
-		var accent;
-		if ($.isEmptyObject(settings)) {
-			Settings.firstRun();
-			return;
-		}
-		else if (!settings.metro) {
-			Settings.firstMetroRun();
-			return;
-		}
-		else {
-			//All future settings should be loaded here
-			accent=settings.accent;
-		}
-		//All required functions called with settings
-		accentChange(accent);
-		Pin.load();
-	},
-	
-	'save': function () {
-		$.post('store.sh', JSON.stringify(saveData));
-	},
-	
-	'firstRun': function () {
-		//First run settings
-		var settings = defaultSettings;
-		saveData['Settings']=settings;
-		Settings.save();
-		Settings.init();
-	},
-	'firstMetroRun': function () {
-		//First Metro run, preserve already saved settings
-		saveData['Settings'] = $.extend(saveData['Settings'],defaultSettings);
-		Settings.save();
-		Settings.init();
-	},
-	'reset': function () {
-		saveData="";
-		Settings.save();
 	}
 }
 
@@ -359,7 +373,10 @@ var Fav = {
 			favLists={};
 		}
 		else if (listName in favLists) {
-			MessageBox.Show('Error', 'List "'+unescape(listName)+'" already exists!');
+			var string = Translate.strings["string-listexists"];
+			var title = Translate.strings["string-error"];
+			var message = string.replace("%s", unescape(listName));
+			MessageBox.Show(title, message);
 			return;
 		}
 		favLists[listName]=[];
@@ -367,13 +384,38 @@ var Fav = {
 		Fav.addToList(id, name, listName);
 		makeFavManagementPage(['page', id+'&'+name]);
 	},
-	'removeList': function (listName) {
+	'createEmptyList': function (listName) {
+		if (!listName) {
+			listName = document.getElementById('favCreateInput').value;
+		}
 		var favLists = Fav.lists();
+		if ($.isEmptyObject(favLists)) {
+			favLists={};
+		}
+		else if (listName in favLists) {
+			var string = Translate.strings["string-listexists"];
+			var title = Translate.strings["string-error"];
+			var message = string.replace("%s", unescape(listName));
+			MessageBox.Show(title, message);
+			return;
+		}
+		favLists[listName]=[];
+		Fav.save(favLists, true);
+		makeFavManagementPage(['page', 'main']);
+	},
+	'removeList': function (listName, management) {
+		var favLists = Fav.lists();
+		if (!listName) {
+			listName = unescape($('#listRemoveDropdown').children('.dropdown-active').attr('id'));
+		}
 		delete favLists[listName];
 		Pages.removePage(listName+'-list');
 		Fav.save(favLists, true);
+		if (management) {
+			makeFavManagementPage(['page', 'main']);
+		}
 	},
-	'addToList': function (id, name, listName) {
+	'addToList': function (id, name, listName, mass) {
 		var flag=false;
 		if (!listName) {
 			listName = unescape($('#favAddDropdown').children('.dropdown-active').attr('id'));
@@ -391,6 +433,12 @@ var Fav = {
 		else {
 			return false;
 		}
+		if (mass) {
+			//Save to local object
+			Fav.save(favLists, false);
+			return;
+		}
+		//Save to server
 		Fav.save(favLists, true);
 		if (flag) {
 			makeFavManagementPage(['page', id+'&'+name]);
@@ -398,7 +446,7 @@ var Fav = {
 		}
 		return true;
 	},
-	'removeFromList': function (id, name, listName) {
+	'removeFromList': function (id, name, listName, mass) {
 		var flag=false;
 		if (!listName) {
 			listName = unescape($('#favRemoveDropdown').children('.dropdown-active').attr('id'));
@@ -406,15 +454,118 @@ var Fav = {
 		}
 		var favLists = Fav.lists();
 		var gameList = favLists[listName];
-		var index = Fav.findIndex(gameList, id);
+		var index = Fav.findIndex(gameList, id, true);
+		if (index == -1 ) {
+			return;
+		}
 		gameList.splice(index,1);
 		if (gameList.length==0) {
-			Fav.removeList(listName);
+			//Fav.removeList(listName);
 		}
+		if (mass) {
+			//Save to local object
+			Fav.save(favLists, false);
+			return;
+		}
+		//Save to server
 		Fav.save(favLists, true);
 		if (flag) {
 			makeFavManagementPage(['page', id+'&'+name]);
 		}
+	},
+	'Mass': {
+		'new': function (listName) {
+			if (!listName) {
+				listName = unescape($('#massAddDropdown').children('.dropdown-active').attr('id'));
+			}
+			if (!Fav.Mass.ISO.isBuild) {
+				Fav.Mass.ISO.build(listName);
+			}
+			else {
+				Fav.Mass.init(listName);
+			}
+			showPage('massAdding-page');
+		},
+		'init': function (listName) {
+			var favLists = Fav.lists();
+			var gameList = favLists[listName];
+			var checkBoxes = $('#massaddingcontainer').find('input[type="checkbox"]');
+			var l = checkBoxes.length;
+			for (var i = 0; i<l; i++) {
+				var cur = checkBoxes[i];
+				var id = cur.id;
+				var index = Fav.findIndex(gameList, id, true);
+				if (index != -1) {
+					CheckBox.check(cur);
+				}
+			}
+			$('#massSaveButton')[0].name = escape(listName);
+		},
+		'save': function () {
+			var listName = unescape($('#massSaveButton')[0].name);
+			var checkBoxes = $('#massaddingcontainer').find('input[type="checkbox"]');
+			var toSave = checkBoxes.filter(':checked');
+			var toRemove = checkBoxes.not(':checked');
+			var l = toSave.length;
+			var k = toRemove.length;
+			for (var i=0; i<l; i++) {
+				var id = toSave[i].id;
+				var name = unescape(toSave[i].name);
+				Fav.addToList(id, name, listName, true);
+			}
+			for (var i=0; i<k; i++) {
+				var id = toRemove[i].id;
+				var name = unescape(toRemove[i].name);
+				Fav.removeFromList(id, name, listName, true);
+			}
+			var favLists = Fav.lists();
+			Fav.save(favLists, true);
+			showPage('favoritesmanagement-page?main');
+		},
+		'ISO': {
+			'build': function (listName) {
+				//Copy the ISOList! We don't want to mess up the other menus
+				var ISOlist = data.ISOlist.slice();
+				//Make it alpabetically listed
+				ISOlist.sort(function(x,y) { 
+					var a = String(x.name).toUpperCase(); 
+					var b = String(y.name).toUpperCase(); 
+					if (a > b) 
+						return 1 
+					if (a < b) 
+						return -1 
+					return 0; 
+				});
+				var iso, id, index;
+				var l = ISOlist.length;
+				var HTML = '';
+				for (var i=0;i<l;i++) {
+					iso = ISOlist[i].name;
+					id = ISOlist[i].id;
+					if (index != -1) {
+						check='checked="checked"';
+					}
+					HTML+='<div class="checkbox" name="'+escape(iso)+'" onclick="CheckBox.onclick(this)"></div>';
+					HTML+='<input type="checkbox" name="'+escape(iso)+'" id="'+id+'" onchange="CheckBox.notify(this)" class="invis"/><label for="'+id+'">'+iso+'</label><br/>';
+				}
+				HTML+='<br/><div class="details-button-pane"><a id="massSaveButton" href="javascript:Fav.Mass.save()" name="'+escape(listName)+'" class="button widebutton">'+Translate.strings["string-done"]+'</a><br/><br/></div>';
+				document.getElementById('massaddingcontainer').innerHTML += HTML;
+				Fav.Mass.ISO.isBuild = true;
+				Fav.Mass.init(listName);
+			},
+			'isBuild': false
+		}
+	},
+	'rename': function (oldName, newName) {
+		if (!oldName) {
+			oldName = unescape($('#listRename').children('.dropdown-active').attr('id'));
+			newName = document.getElementById('favRenameInput').value;
+		}
+		var favLists = Fav.lists();
+		favLists[newName] = favLists[oldName];
+		delete favLists[oldName];
+		Fav.save(favLists, true);
+		showPage('favoritesmanagement-page?main');
 	},
 	'findList': function (id) {
 		var savedFavLists = Fav.lists();
@@ -525,7 +676,7 @@ var Tile = {
 					nextState='animateUp';
 					break;
 				default:
-					//alert('Your browser sucks! \nReport this shit to Waffles: \nYpos='+pos[2]+'\nIndex:'+index+'\nMeanwhile we\'ll just reset the animation');
+					//Previous anim didn't finish, reset
 					nextState='animateUp';
 					break;
 			};
@@ -564,6 +715,164 @@ var Tile = {
 	},
 	'log': function (msg) {
 		document.getElementById('tileDebug').innerHTML='Debug:<br/>'+msg;
+	}
+}
+
+var Translate = {
+	'load' : function (callback) {
+		if ($.browser.msie) {
+			var xdr = new XDomainRequest();
+			xdr.onload = function() {
+				var reply = xdr.responseText;
+				var langs = reply.split(', ').slice(0,-1);
+				callback(langs);
+			}
+			xdr.open("get", 'http://bwerkt.nl/xkey/translate/list.php');
+			xdr.send();
+		}
+		else {
+			$.ajax({
+				type: "GET",
+				url: "http://bwerkt.nl/xkey/translate/list.php",
+				cache: false,
+				success: function(reply) {
+					var langs = reply.split(', ').slice(0,-1);
+					callback(langs);
+				}
+			});
+		}
+	},
+	'select' : function (lang) {
+		if ($.browser.msie) {
+			var xdr = new XDomainRequest();
+			xdr.onload = function() {
+				var reply = JSON.parse(xdr.responseText);
+				Translate.translate(reply);
+			}
+			xdr.open("get", 'http://bwerkt.nl/xkey/translate/load.php?lang='+lang);
+			xdr.send();
+		}
+		else {
+			$.ajax({
+				type: "GET",
+				dataType: 'json',
+				url: "http://bwerkt.nl/xkey/translate/load.php?lang="+lang,
+				cache: false,
+				success: function(reply) {
+					Translate.translate(reply);
+				}
+			});
+		}
+	},
+	'translate' : function (translation) {
+		Translate.strings = translation;
+		for (var i in translation) {
+			$('.'+i).html(translation[i]);
+		}
+	},
+	'makeList' : function (langs) {
+		var cur=saveData['Settings'].language;
+		var index = Fav.findIndex(langs, cur, false);
+		var HTML = '';
+		HTML+='<div id="'+cur+'" class="dropdown-item dropdown-active">';
+		HTML+='<span class="dropdownText">'+cur+'</span>';
+		HTML+='</div>';
+		langs.splice(index, 1);
+		var l = langs.length;
+		for (var i=0;i<l;i++) {
+			HTML+='<div id="'+langs[i]+'" class="dropdown-item invis">';
+			HTML+='<span class="dropdownText">'+langs[i]+'</span>';
+			HTML+='</div>';
+		}
+		document.getElementById('languageSelect').innerHTML = HTML;
+	},
+	'strings' : {
+		"title" : "XK3Y WEB INTERFACE",
+		"title-main" : "main",
+		"title-coverwall" : "coverwall",
+		"title-lists" : "lists",
+		"title-folderstructure" : "folder structure",
+		"title-favorites" : "favorites",
+		"title-favmanagement" : "fav management",
+		"title-massadding" : "Mass adding",
+		"title-search" : "search",
+		"title-config" : "config",
+		"title-about" : "about",
+		"xkeyinfo" : "xk3y information",
+		"otherinfo" : "other information",
+		"accent-title" : "Accent color",
+		"language-title" : "Interface Language",
+		"string-accent" : "Change the accent color to match your mood.",
+		"string-language" : "Select your preferred language.",
+		"string-delete" : "Delete all saved data",
+		"string-nolists" : "No lists",
+		"string-managefav" : "Manage favorites",
+		"string-createlist" : "Create a new list:",
+		"string-listexists" : "List %s already exists!",
+		"string-removelist" : "Select a list to remove:",
+		"string-addtolist" : "Select a list to add this game to:",
+		"string-removefromlist" : "Select a list to remove this game from:",
+		"string-removelist" : "Select a list to remove:",
+		"string-massadd" : "Select a list to mass add to:",
+		"string-rename" : "Select a list to rename:",
+		"string-pinmain" : "Pin to main",
+		"string-removepin" : "Remove from main",
+		"string-notitle" : "No Title",
+		"string-done" : "done",
+		"string-close" : "close",
+		"string-play" : "play",
+		"string-done-close" : "When you're done, you can go back by clicking 'close'",
+		"string-loadingtitle" : "Loading Notification",
+		"string-opentray" : "Please open your DVD tray",
+		"string-alreadyloaded" : "A game appears to be already loaded, please open your DVD tray and click 'Reload'",
+		"string-reload" : "Reload",
+		"string-scrollup" : "Scroll up",
+		"string-error" : "Error"
+	}
+}
+
+var Settings = {
+	'init': function () {
+		var settings = saveData['Settings'];
+		var accent;
+		if ($.isEmptyObject(settings)) {
+			Settings.firstRun();
+			return;
+		}
+		else if (!settings.metro || !settings.language) {
+			Settings.firstMetroRun();
+			return;
+		}
+		else {
+			//All future settings should be loaded here
+			accent=settings.accent;
+			language=settings.language;
+		}
+		//All required functions called with settings
+		accentChange(accent);
+		Translate.select(language);
+		Pin.load();
+	},
+	
+	'save': function () {
+		$.post('store.sh', JSON.stringify(saveData));
+	},
+	'firstRun': function () {
+		//First run settings
+		var settings = defaultSettings;
+		saveData['Settings']=settings;
+		Settings.save();
+		Settings.init();
+	},
+	'firstMetroRun': function () {
+		//First Metro run, preserve already saved settings
+		saveData['Settings'] = $.extend(saveData['Settings'],defaultSettings);
+		Settings.save();
+		Settings.init();
+	},
+	'reset': function () {
+		saveData="";
+		Settings.save();
 	}
 }
 
