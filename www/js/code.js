@@ -418,7 +418,7 @@ function makeFolderStructurePage(args) {
 		for (var i in HTMLToAppend) {
 			//dir = dirs[i].dir;
 			//Get the HTML
-			HTML = HTMLToAppend[i
+			HTML = HTMLToAppend[i];
 			//If dir is HDD, put into main container
 			if (isHDD(i)) {
 				htmlPar = 'folderstructurecontainer';
