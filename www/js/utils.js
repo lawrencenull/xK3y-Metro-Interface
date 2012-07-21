@@ -904,3 +904,7 @@ function isNumber (o) {
 function fixTextInput() {
 	$('.searchinput').css('width', $(window).width()-50+'px');
 }
+
+function isHDD (dir) {
+	return (data.drives.toString().indexOf(dir)!=-1);
+}
