@@ -1,4 +1,4 @@
-var version='0.20';
+var version='0.21';
 //Some global variables needed
 var data;
 var saveData;
@@ -32,6 +32,10 @@ function getData() {
 						"name" : iso, 
 						"image" : coversrc, 
 						"par" : par };
+				/*isodata = {
+					"id" : id,
+					"name" : iso
+				}*/
 				ISOlist.push(isodata);
 				//Cache images
 				//cacheImage = new Image();
@@ -262,13 +266,13 @@ var Recent = {
 					favLists = Fav.lists();
 				}
 				else {
-					Fav.addToList(id, name, listName, true);
+					Fav.addToList(id, name, listName);
 				}
 				saveData[id] = store;
 			}
 		}
 		Settings.save();
-		Recent.updated = true;
+		Recent.updated=true;
 		Recent.makePage();
 	},
 	'clear' : function () {
@@ -328,55 +332,104 @@ function makeFolderStructurePage(args) {
 		return;
 	}
 	if (!foldersMade) {
-		var dir, dirID, par, par1, chk, id, name, cover, activeClass, HTML;
+		var dir, dirID, par, htmlPar, chk, id, name, cover, activeClass, HTML;
 		var active=data.active;
+		var ISOlist = data.ISOlist;
+		var dirs = data.dirs;
+		//Gathering object for all HTML
+		var HTMLToAppend = {};
 		//Create directories first
 		var l = data.dirs.length;
 		for (var i=0; i<l; i++) {
-			dir = escape(data.dirs[i].dir);
-			par = data.dirs[i].par;
-			chk = data.drives.toString().indexOf(par);
+			//Current directory
+			dir = escape(dirs[i].dir);
+			//Parent of current dir
+			par = dirs[i].par;
+			//Check if parent is a HDD
+			//chk = data.drives.toString().indexOf(par);
+			//Each dir has own page, check for page
 			if ($('div#'+dir+'-dir').length==0) {
-				//Create a new page
+				//Create a new page if one doesn't exist
 				Pages.newPage(dir+'-dir', dir);
 			}
-			if (chk!=-1) {
-				par1 = 'folderstructurecontainer';
+			//If par is a HDD, make final par the container
+			/*if (chk!=-1) {
+				htmlPar = 'folderstructurecontainer';
 			}
+			//Otherwise prep final par
 			else {
-				par1 = par+"-dir";
-				par1 = escape(par1);
-			}
+				htmlPar = par+"-dir";
+				htmlPar = escape(htmlPar);
+			}*/
+			//If dir tile doesn't exist, create
 			if (!document.getElementById(dir)) {
+				//Create HTML for tile
 				HTML='<a href="#folderstructure-page?'+dir+'-dir"><div class="tile accent" style="background-image:url(\'img/folder.png\'); background-size: 173px;"><span class="tile-title">'+unescape(dir)+'</span></div></a>';
-				document.getElementById(par1).innerHTML+=HTML;
+				//Put HTML in gathering object
+				if ($.isEmptyObject(HTMLToAppend[par])) {
+					HTMLToAppend[par] = '';
+				}
+				HTMLToAppend[par] += HTML;
+				//Append HTML to parent dir page
+				//document.getElementById(htmlPar).innerHTML+=HTML;
 			}
 		}
 		//Then the ISOs
-		var l = data.ISOlist.length;
+		var l = ISOlist.length;
 		for (var i=0; i<l; i++) {
-			id = data.ISOlist[i].id;
-			name = data.ISOlist[i].name;
-			par = escape(data.ISOlist[i].par);
-			cover = data.ISOlist[i].image;
+			//Current game ID
+			id = ISOlist[i].id;
+			//Current game name
+			name = ISOlist[i].name;
+			//Current game parent dir
+			par = ISOlist[i].par;
+			//Current game coverart
+			cover = ISOlist[i].image;
 			//debug cover
 			//cover = 'img/test.jpg';
-			chk = data.drives.toString().indexOf(par);
+			//Check if parent dir is HDD
+			//chk = data.drives.toString().indexOf(par);
 			//Same parent fix as with directories
-			if (chk!=-1) {
-				par1 = 'folderstructurecontainer';
+			/*if (chk!=-1) {
+				htmlPar = 'folderstructurecontainer';
 			}
+			//Otherwise prep final dir
 			else {
-				par1 = par+"-dir";
-			}
+				htmlPar = par+"-dir";
+				htmlPar = escape(htmlPar);
+			}*/
 			activeClass='';
 			//If game is active, highlight it
 			if (id==active) {
 				activeClass=' class="activeGame"';
 			}
+			//Prep game tile HTML
 			HTML='<a href="#details-page?'+id+'&'+escape(name)+'"><div class="tile accent animate" style="background-image:url(\''+cover+'\'); background-size: 173px;"><span class="tile-title">'+name+'</span></div></a>';
-			document.getElementById(par1).innerHTML+=HTML;
+			//Put HTML in gathering object
+			if ($.isEmptyObject(HTMLToAppend[par])) {
+				HTMLToAppend[par] = '';
+			}
+			HTMLToAppend[par] += HTML;
+			//Append game tile to parent page
+			//Performance issue with many games
+			//document.getElementById(htmlPar).innerHTML+=HTML;
 		};
+		//Loop through all directories in gathering object
+		for (var i in HTMLToAppend) {
+			//dir = dirs[i].dir;
+			//Get the HTML
+			HTML = HTMLToAppend[i];
+			//If dir is HDD, put into main container
+			if (isHDD(i)) {
+				htmlPar = 'folderstructurecontainer';
+			}
+			//Otherwise prep html parent ID
+			else {
+				htmlPar = escape(i + '-dir');
+			}
+			//Append all HTML at once to parent container
+			document.getElementById(htmlPar).innerHTML+=HTML;
+		}
 		foldersMade=true;
 		accentChange(saveData['Settings'].accent);
 		//If we had arguments, it means a directory was requested upon creation; show the directory page
