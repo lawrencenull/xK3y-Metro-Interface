@@ -3,11 +3,9 @@
 	<head>
 		<title>xK3y Remote Web Interface</title>
 		<meta id="viewportmeta" name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0,width=480,height=728"/>
-		<script type="text/javascript">
-		</script>
-
+		<meta charset="UTF-8">
 		<link type="text/css" rel="stylesheet" href="js/metro.css" />
-		
+		<link rel="shortcut icon" href="img/icon.ico">
 		<script type="text/javascript" src="js/min.js"></script>
 		<script type="text/javascript" src="js/utils.js"></script>
 		<script type="text/javascript" src="js/code.js"></script>
@@ -105,7 +103,7 @@
 			<!-- Cover Wall Page Placeholder -->
 			<div id="coverwall-page" class="page">
 				<div class="spacer"></div><div class="spacer"></div>
-				<span class="page-title title-coverwall">cover wall</span><br/>
+				<span class="page-title title-coverwall">coverwall</span><br/>
 				<div class="page-wrapper" id="coverwallcontainer"></div>
 			</div>
 			<!-- List Page Placeholder -->
@@ -153,13 +151,53 @@
 						<div class="accentIconSmall accent"></div>
 						<span class="dropdownText">blue</span>
 					</a><br/><br/>
+					<!-- Language select dropdown -->
 					<span class="string-language">Select your preferred language.</span><br/><br/>
 					<span style="font-size:14pt;" class="language-title">Interface Language</span>
 					<a onclick="Dropdown.open(this)" id="languageSelect" class="dropdown" onselect="Translate.select">
 						<div class="dropdown-item dropdown-active">
 							<span class="dropdownText">Loading...</span>
 						</div>
-					</a><br/><br/><br/>
+					</a><br/><br/>
+					<!-- Tile slide frequency dropdown -->
+					<span class="string-slideprop">Choose the probability of which tiles will slide.</span><br/><br/>
+					<span style="font-size:14pt;" class="slideprob-title">Slide probability</span>
+					<a onclick="Dropdown.open(this)" id="slideProbablity" class="dropdown" onselect="Tile.saveProbability">
+						<div class="dropdown-item dropdown-active">
+							<span class="dropdownText">100/100</span>
+						</div>
+						<div class="dropdown-item">
+							<span class="dropdownText">90/100</span>
+						</div>
+						<div class="dropdown-item">
+							<span class="dropdownText">80/100</span>
+						</div>
+						<div class="dropdown-item">
+							<span class="dropdownText">70/100</span>
+						</div>
+						<div class="dropdown-item">
+							<span class="dropdownText">60/100</span>
+						</div>
+						<div class="dropdown-item">
+							<span class="dropdownText">50/100</span>
+						</div>
+						<div class="dropdown-item">
+							<span class="dropdownText">40/100</span>
+						</div>
+						<div class="dropdown-item">
+							<span class="dropdownText">30/100</span>
+						</div>
+						<div class="dropdown-item">
+							<span class="dropdownText">20/100</span>
+						</div>
+						<div class="dropdown-item">
+							<span class="dropdownText">10/100</span>
+						</div>
+						<div class="dropdown-item">
+							<span class="dropdownText">0/100</span>
+						</div>
+					</a><br/><br/>
+					<br/>
 					<!--<br/><br/><br/><br/>
 					<span style="font-size:14pt;">Background</span>
 					<a onclick="backgroundDropdown();" id="backgroundSelect" class="dropdown">

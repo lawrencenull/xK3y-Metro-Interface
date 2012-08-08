@@ -26,7 +26,8 @@ var pages = {
 var defaultSettings = {
 	'accent' : 'blue',
 	'metro' : true,
-	'language' : 'English'
+	'language' : 'English',
+	'slideChance' : 80
 }
 
 $(window).resize(function() { 
@@ -71,12 +72,15 @@ function showPage(page) {
 		args=page.split('?',2);
 		page=args[0];
 	}
-	if (page=='overlay' && firstLoad) {
+	//If hash is an overlay, go back
+	if (page=='overlay') {
 		history.back();
 	}
+	//Do we have a "#" in the page string? cut it off
 	if (page.indexOf('#')==0) {
 		page = page.slice(1,page.length);
 	}
+	//No "%"? Escape the page string to make sure we get it right
 	if (page.indexOf('%')==-1) {
 		page=escape(page);
 	}
@@ -644,13 +648,19 @@ var Tile = {
 	},
 	'animateNext': function(tile,index) {
 		var doAnim;
+		//Saved probability
+		var prob = saveData.Settings.slideChance;
+		if (prob == 0) {
+			Tile.stop();
+			return;
+		}
+		//Random 0-100
 		var random=Math.floor(Math.random()*101);
-		//console.log(random);
-		if (random<30) {
-			doAnim=false;
+		if (random<=prob) {
+			doAnim=true;
 		}
 		else {
-			doAnim=true;
+			doAnim=false;
 		}
 		if (doAnim) {
 			var bgY = $.curCSS(tile,'background-position-y');
@@ -685,6 +695,9 @@ var Tile = {
 			//Tile.log(dbgText);
 			return;
 		}
+		else {
+			return;
+		}
 		//Tile.log('random int lower than 20, delaying animation... ('+random+')');
 	},
 	'animateLoop': function (tiles) {
@@ -707,6 +720,16 @@ var Tile = {
 		//$('a[onclick^="Tile"]').find('span').html('click to stop tile animation');
 		//$('a[onclick^="Tile"]').attr('onclick','Tile.stop()');
 	},
+	'saveProbability' : function(string) {
+		var prob = string.split("/")[0];
+		saveData.Settings.slideChance = prob;
+		Settings.save();
+	},
+	'loadProbability' : function() {
+		var prob = saveData.Settings.slideChance;
+		$('#slideProbablity').find('.dropdown-active').removeClass('dropdown-active');
+		$('#slideProbablity').find('div:contains("'+prob+'/100")').addClass('dropdown-active');
+	},
 	'stop': function () {
 		clearTimeout(animCounter);
 		//$('a[onclick^="Tile"]').find('span').html('click to start tile animation');
@@ -727,7 +750,8 @@ var Translate = {
 				var langs = reply.split(', ').slice(0,-1);
 				callback(langs);
 			}
-			xdr.open("get", 'http://bwerkt.nl/xkey/translate/list.php');
+			var anticache = Math.floor(Math.random()*10000001);
+			xdr.open("get", 'http://bwerkt.nl/xkey/translate/list.php?_='+anticache);
 			xdr.send();
 		}
 		else {
@@ -749,7 +773,8 @@ var Translate = {
 				var reply = JSON.parse(xdr.responseText);
 				Translate.translate(reply);
 			}
-			xdr.open("get", 'http://bwerkt.nl/xkey/translate/load.php?lang='+lang);
+			var anticache = Math.floor(Math.random()*10000001);
+			xdr.open("get", 'http://bwerkt.nl/xkey/translate/load.php?lang='+lang+'&_='+anticache);
 			xdr.send();
 		}
 		else {
@@ -763,6 +788,8 @@ var Translate = {
 				}
 			});
 		}
+		saveData.Settings.language = lang;
+		Settings.save();
 	},
 	'translate' : function (translation) {
 		Translate.strings = translation;
@@ -774,13 +801,13 @@ var Translate = {
 		var cur=saveData['Settings'].language;
 		var index = Fav.findIndex(langs, cur, false);
 		var HTML = '';
-		HTML+='<div id="'+cur+'" class="dropdown-item dropdown-active">';
+		/*HTML+='<div id="'+cur+'" class="dropdown-item dropdown-active">';
 		HTML+='<span class="dropdownText">'+cur+'</span>';
-		HTML+='</div>';
-		langs.splice(index, 1);
+		HTML+='</div>';*/
+		//langs.splice(index, 1);
 		var l = langs.length;
 		for (var i=0;i<l;i++) {
-			HTML+='<div id="'+langs[i]+'" class="dropdown-item invis">';
+			HTML+='<div id="'+langs[i]+'" class="dropdown-item '+(langs[i]==cur ? "dropdown-active" : "")+'">';
 			HTML+='<span class="dropdownText">'+langs[i]+'</span>';
 			HTML+='</div>';
 		}
@@ -802,6 +829,8 @@ var Translate = {
 		"otherinfo" : "other information",
 		"accent-title" : "Accent color",
 		"language-title" : "Interface Language",
+		"slideprob-title" : "Slide probability",
+		"string-slideprob" : "Choose the probability of which tiles will slide.",
 		"string-accent" : "Change the accent color to match your mood.",
 		"string-language" : "Select your preferred language.",
 		"string-delete" : "Delete all saved data",
@@ -834,12 +863,12 @@ var Translate = {
 var Settings = {
 	'init': function () {
 		var settings = saveData['Settings'];
-		var accent;
+		var accent, language;
 		if ($.isEmptyObject(settings)) {
 			Settings.firstRun();
 			return;
 		}
-		else if (!settings.metro || !settings.language) {
+		else if (!settings.metro || !settings.language || !settings.slideChance) {
 			Settings.firstMetroRun();
 			return;
 		}
@@ -851,9 +880,9 @@ var Settings = {
 		//All required functions called with settings
 		accentChange(accent);
 		Translate.select(language);
+		Tile.loadProbability()
 		Pin.load();
 	},
-	
 	'save': function () {
 		$.post('store.sh', JSON.stringify(saveData));
 	},
