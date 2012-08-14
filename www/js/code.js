@@ -1,4 +1,4 @@
-var version='0.21';
+var version='0.31';
 //Some global variables needed
 var data;
 var saveData;
@@ -213,7 +213,7 @@ var Recent = {
 			var cover = 'covers/'+id+'.jpg';
 			HTML+='<a href="#details-page?'+id+'&'+escape(name)+'"><div class="list-item game '+id+'"><div class="list-item-icon accent" style="background-image:url(\''+cover+'\'); background-size: 72px;"></div><span class="list-item-text">'+name+'</span></div></a>';
 		}
-		document.getElementById('recentaddcontainer').innerHTML=HTML;
+		document.getElementById('recentaddcontainer').innerHTML=HTML+"<br/>";
 		//Trigger accentChange to make sure the list gets the correct colors
 		accentChange(saveData['Settings'].accent);
 	},
@@ -463,16 +463,26 @@ function makeFavoritesPage(args) {
 			lists.push(i);
 		}
 		var l = lists.length;
-		tileHTML='';
 		for (var i=0; i<l; i++) {
 			listName=lists[i];
+			//Tile HTML
+			tileHTML+='<a href="#favorites-page?'+escape(listName)+'-list">';
+			tileHTML+='<div class="tile accent favlist '+color+'">';
+			tileHTML+='<span class="tile-title">'+listName+'</span>';
+			tileHTML+='</div></a>';
+			//If gameList has more games than we have already listed, we need to recreate the HTML
+			gameList = favLists[listName];
+			var k = gameList.length;
 			var page = $(document.getElementById(escape(listName)+'-list'));
-			//Create a new page
+			if (page.children('a').length==k) {
+				//console.log("No change in games, skip: "+listName);
+				continue;
+			}
+			//Create a new page if there's none yet
 			if (page.length==0) {
 				Pages.newPage(listName+'-list', listName);
 			}
-			gameList = favLists[listName];
-			var k = gameList.length;
+			//Create HTML for games in list
 			HTML='';
 			for (var j=0; j<k; j++) {
 				id = gameList[j].id;
@@ -486,13 +496,7 @@ function makeFavoritesPage(args) {
 				//cover = 'img/test.jpg';
 				HTML+='<a href="'+href+'"><div class="tile accent animate '+color+'" style="background-image:url(\''+cover+'\'); background-size: 173px;"><span class="tile-title">'+name+'</span></div></a>';
 			}
-			$(document.getElementById(escape(listName)+'-list')).children('a').remove();
 			document.getElementById(escape(listName)+'-list').innerHTML+=HTML;
-			//Tile HTML
-			tileHTML+='<a href="#favorites-page?'+escape(listName)+'-list">';
-			tileHTML+='<div class="tile accent favlist '+color+'">';
-			tileHTML+='<span class="tile-title">'+listName+'</span>';
-			tileHTML+='</div></a>';
 		}
 	}
 	tileHTML+='<a href="#favoritesmanagement-page?main">';
@@ -656,24 +660,18 @@ function prepDetails(id, name) {
 	var url = 'covers/'+id+'.xml';
 	document.getElementById('details-page').innerHTML='';
 	var title, summary, HTML;
-	var pinButtonAction = 'Pin.add(\''+id+'\', \''+name+'\');';
+	var pinButtonAction = 'Pin.add(\"'+id+'\", \"'+escape(name)+'\");';
 	var pinButtonText = Translate.strings["string-pinmain"];
-	//var favButtonAction = '';
-	//var favButtonText = 'Add to favorites';
 	var favLists = Fav.lists();
 	if (!$.isEmptyObject(favLists)) {
 		var pinned = favLists.Pinned;
 		if (!$.isEmptyObject(pinned)) {
 			var index = Fav.findIndex(pinned, id, true);
 			if (index != -1) {
-				pinButtonAction = 'Pin.remove(\''+id+'\', \''+name+'\');';
+				pinButtonAction = 'Pin.remove(\''+id+'\', \''+escape(name)+'\');';
 				pinButtonText = Translate.strings["string-removepin"];
 			}
 		}
-		/*var favTest = Fav.findList(id);
-		if (findList.length!=0) {
-			
-		}*/
 	}
 	$.ajax({
 		type: "GET",
@@ -690,12 +688,13 @@ function prepDetails(id, name) {
 			summary = $(xml).find('summary').text();
 			var infoitems='';
 			$(xml).find('infoitem').each(function() {
-				var string=$(this).text();
+				var item = $(this);
+				var string = item.text();
 				//Add them all to a long HTML string
 				if (string.indexOf('www')==0 || string.indexOf('http')==0) {
 					string = '<a href="'+string+'" target="_blank">'+string+'</a>';
 				}
-				infoitems+=string+'<br/>';
+				infoitems += item.attr("name") + ": "+ string+'<br/>';
 			});
 			infoitems+='<br/>';
 			HTML='<div class="spacer"></div><div class="spacer"></div><span class="page-title">'+title+'</span><br/><br/><div class="page-wrapper">';
@@ -703,7 +702,7 @@ function prepDetails(id, name) {
 			HTML+='<span class="about-items">'+infoitems+'</span>'+summary+'<div class="details-button-pane">';
 			HTML+='<a class="button" href="javascript:launchGame(\''+id+'\');">'+Translate.strings["string-play"]+'</a>';
 			HTML+='<a class="button" href="javascript:history.back();">'+Translate.strings["string-close"]+'</a>';
-			HTML+='<a class="button" href="javascript:'+pinButtonAction+'">'+pinButtonText+'</a>';
+			HTML+='<a class="button" href=\'javascript:'+pinButtonAction+'\'>'+pinButtonText+'</a>';
 			HTML+='<a class="button" href="#favoritesmanagement-page?'+id+'&'+name+'">'+Translate.strings["string-managefav"]+'</a>';
 			HTML+='</div></div>';
 			document.getElementById('details-page').innerHTML=HTML;
@@ -717,7 +716,7 @@ function prepDetails(id, name) {
 			HTML+='<span class="about-items">'+infoitems+'</span>'+summary+'<div class="details-button-pane">';
 			HTML+='<a class="button" href="javascript:launchGame(\''+id+'\');">'+Translate.strings["string-play"]+'</a>';
 			HTML+='<a class="button" href="javascript:history.back();">'+Translate.strings["string-close"]+'</a>';
-			HTML+='<a class="button" href="javascript:'+pinButtonAction+'">'+pinButtonText+'</a>';
+			HTML+='<a class="button" href=\'javascript:'+pinButtonAction+'\'>'+pinButtonText+'</a>';
 			HTML+='<a class="button" href="#favoritesmanagement-page?'+id+'&'+name+'">'+Translate.strings["string-managefav"]+'</a>';
 			HTML+='</div></div>';
 			document.getElementById('details-page').innerHTML=HTML;

@@ -152,7 +152,7 @@ function openLetterOverlay() {
 	});
 	avail.toString();
 	var HTML='';
-	var cur=0;
+	//var cur=0;
 	for (var i=0;i<letters.length;i++) {
 		if (avail.indexOf(letters[i])==-1) {
 			HTML+='<div class="overlay-item overlay-grey">'+letters[i]+'</div>'
@@ -160,11 +160,11 @@ function openLetterOverlay() {
 		else {
 			HTML+='<a href="javascript:location.replace(\'#list-page?'+letters[i]+'\');"><div class="overlay-item '+saveData.Settings.accent+'">'+letters[i]+'</div></a>'
 		}
-		cur++;
-		if(cur == 4) {
+		//cur++;
+		/*if(cur == 4) {
 			HTML+='<br/>';
 			cur=0;
-		}
+		}*/
 	}
 	document.getElementById('overlay').innerHTML=HTML;
 	document.getElementById('overlay').style.height="100%";
