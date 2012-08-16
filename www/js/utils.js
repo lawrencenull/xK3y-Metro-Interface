@@ -632,18 +632,18 @@ var Pages = {
 
 var Tile = {
 	'animateHalf': function (tile) {
-		$(tile).animate({backgroundPosition: '0 86px'});
-		$(tile).children('span').animate({bottom: '92px'});
+		$(tile).animate({'background-position': '0 86px'});
+		$(tile).children('span').animate({'bottom': '92px'});
 		//setTimeout(Tile.animateDown, 2500);
 	},
 	'animateDown': function (tile) {
-		$(tile).animate({backgroundPosition: '0 173px'});
-		$(tile).children('span').animate({bottom: '6px'});
+		$(tile).animate({'background-position': '0 173px'});
+		$(tile).children('span').animate({'bottom': '6px'});
 		//setTimeout(Tile.animateUp, 2500);
 	},
 	'animateUp': function (tile) {
-		$(tile).animate({backgroundPosition: '0 0'});
-		$(tile).children('span').animate({bottom: '179px'});
+		$(tile).animate({'background-position': '0 0'});
+		$(tile).children('span').animate({'bottom': '179px'});
 		//setTimeout(Tile.animateHalf, 2500);
 	},
 	'animateNext': function(tile,index) {
@@ -663,15 +663,10 @@ var Tile = {
 			doAnim=false;
 		}
 		if (doAnim) {
-			var bgY = $.curCSS(tile,'background-position-y');
-			if (bgY=="") {
-				bgY = $.curCSS(tile,'backgroundPosition');
-			}
-			if(!bgY){//FF2 no inline-style fallback
+			//var bgY = $.curCSS(tile,'background-position-y');
+			var bgY = $(tile).css('backgroundPosition');
+			if (bgY=="" || !bgY) {
 				bgY = '0px 0px';
-			}
-			if (bgY.length<=5) {
-				bgY = '0px '+bgY;
 			}
 			var pos=toArray(bgY);
 			var nextState;

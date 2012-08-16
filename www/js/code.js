@@ -1,4 +1,4 @@
-var version='0.31';
+var version='0.33';
 //Some global variables needed
 var data;
 var saveData;
@@ -283,48 +283,6 @@ var Recent = {
 	'updated' : false
 }
 
-function makeRecentlyAdded() {
-	//Copy the ISOList! We don't want to mess up the other menus
-	var ISOlist = data.ISOlist.slice();
-	//Make it alpabetically listed
-	ISOlist.sort(function(x,y) { 
-		var a = String(x.name).toUpperCase(); 
-		var b = String(y.name).toUpperCase(); 
-		if (a > b) 
-			return 1 
-		if (a < b) 
-			return -1 
-		return 0; 
-	});
-	var iso, id, cover, flag, store;
-	var HTML='';
-	var l=ISOlist.length;
-	for (var i=0;i<l;i++) {
-		iso = ISOlist[i].name;
-		id = ISOlist[i].id;
-		cover = ISOlist[i].image;
-		store = saveData[id];
-		flag = false;
-		if ($.isEmptyObject(store)) {
-			flag = true;
-		}
-		else {
-			if (!store.known) {
-				flag = true
-			}
-		}
-		//debug cover
-		//cover = 'img/test.jpg';
-		HTML+='<a href="#details-page?'+id+'&'+escape(iso)+'"><div class="list-item game '+id+'"><div class="list-item-icon accent" style="background-image:url(\''+cover+'\'); background-size: 72px;"></div><span class="list-item-text">'+iso+'</span></div></a>';
-	}
-	HTML+='<a href="javascript:scrollUp()"><div class="list-item game"><div class="list-item-icon accent" style="background-image:url(\'img/up.png\'); background-size: 72px;"></div><span class="list-item-text string-scrollup">'+Translate.strings["string-scrollup"]+'</span></div></a><br/>';
-	//Native approach should be faster
-	document.getElementById('listcontainer').innerHTML=HTML;
-	//Trigger accentChange to make sure the list gets the correct colors
-	accentChange(saveData['Settings'].accent);
-	return;
-}
-
 function makeFolderStructurePage(args) {
 	//If there are arguments and the page is created, we are requesting a folder
 	if (args && foldersMade) {
@@ -345,22 +303,11 @@ function makeFolderStructurePage(args) {
 			dir = escape(dirs[i].dir);
 			//Parent of current dir
 			par = dirs[i].par;
-			//Check if parent is a HDD
-			//chk = data.drives.toString().indexOf(par);
 			//Each dir has own page, check for page
-			if ($('div#'+dir+'-dir').length==0) {
+			if (!document.getElementById(dir+"-dir")) {
 				//Create a new page if one doesn't exist
 				Pages.newPage(dir+'-dir', dir);
 			}
-			//If par is a HDD, make final par the container
-			/*if (chk!=-1) {
-				htmlPar = 'folderstructurecontainer';
-			}
-			//Otherwise prep final par
-			else {
-				htmlPar = par+"-dir";
-				htmlPar = escape(htmlPar);
-			}*/
 			//If dir tile doesn't exist, create
 			if (!document.getElementById(dir)) {
 				//Create HTML for tile
@@ -370,8 +317,6 @@ function makeFolderStructurePage(args) {
 					HTMLToAppend[par] = '';
 				}
 				HTMLToAppend[par] += HTML;
-				//Append HTML to parent dir page
-				//document.getElementById(htmlPar).innerHTML+=HTML;
 			}
 		}
 		//Then the ISOs
@@ -741,15 +686,15 @@ function launchGame(id) {
             }
 			else if (tray == 1 && guistate == 1) {
 				var title = Translate.strings["string-loadingtitle"];
-				var message = Translate.string["string-opentray"];
+				var message = Translate.strings["string-opentray"];
 				MessageBox.Show(title, message);
 				$.get(url);
 				updateActive(id);
 			}
 			else if (tray == 1 && guistate == 2) {
 				var title = Translate.strings["string-loadingtitle"];
-				var message = Translate.string["string-alreadyloaded"];
-				var reload = Translate.string["string-reload"];
+				var message = Translate.strings["string-alreadyloaded"];
+				var reload = Translate.strings["string-reload"];
 				MessageBox.Show(title, message, '<a class="button" href="javascript:MessageBox.Close();launchGame(\''+id+'\')">'+reload+'</a>');
 			}
 		}
